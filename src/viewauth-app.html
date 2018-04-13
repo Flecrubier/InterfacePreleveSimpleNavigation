@@ -1,0 +1,99 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="viewauth-app">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+
+      paper-button {
+        background: green;
+        color: yellow;
+        position: absolute;
+        left:35%;
+        top:45%;
+      }
+    </style>
+
+    <firebase-app
+      name="iPreleveFirebase"
+      api-key="AIzaSyARAy4a8CcjZXD2d4G34xUegbhhpuoJx-U"
+      auth-domain="interfaceprelevesimple.firebaseapp.com"
+      database-url="https://interfaceprelevesimple.firebaseio.com"
+      storage-bucket="gs://interfaceprelevesimple.appspot.com">
+    </firebase-app>
+
+<!--
+    <firebase-auth
+      app-name="iPreleveFirebase"
+      id="auth"
+      provider="google"
+      user={{user}}
+      on-error="_showError">
+    </firebase-auth>
+-->
+    <paper-input style="width:20em" label="Email" value="{{mail}}" maxlength="100"></paper-input>
+    <paper-input style="width:20em" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password"></paper-input>
+
+    <paper-button id="loginButton" raised on-tap="_login" hidden$="[[user]]">Connexion</paper-button>
+    <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
+  </template>
+
+  <script>
+    class ViewAuthApp extends Polymer.Element {
+      static get is() { return 'viewauth-app'; }
+
+
+
+      _login(){
+        document.dispatch("authRequest");
+        var authLoginEvent = new CustomEvent(
+          "authLoginRequest",
+          {
+            detail:{
+              mail: this.mail,
+              mdp: this.mdp
+            },
+            bubbles: true,
+            composed: true
+          }
+        );
+        this.dispatchEvent(authLoginEvent);
+        /*this.$.auth.signInWithPopup()
+          .then(function(response){console.log("yeee")})
+          .catch(function(error){console.log("badddd")});*/
+      }
+      _logout(){
+        var authLogoutEvent = new CustomEvent(
+          "authLogoutRequest",
+          {
+            bubbles: true,
+            composed: true
+          }
+        );
+        this.dispatchEvent(authLogoutEvent);
+
+        //this.$.auth.signOut();
+      }
+    }
+
+    window.customElements.define(ViewAuthApp.is, ViewAuthApp);
+  </script>
+</dom-module>

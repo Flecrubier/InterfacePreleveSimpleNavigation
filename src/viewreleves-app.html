@@ -1,0 +1,112 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="viewreleves-app">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+
+    <template is="dom-if" if="[[user]]">
+      <firebase-query
+        app-name="iPreleveFirebase"
+        id="query"
+        ref="{{ref}}"
+        path="/releves/[[user.uid]]"
+        data="{{data}}">
+      </firebase-query>
+
+
+      <br/>
+      <h5>Liste des relevés actuels :</h5>
+
+      <paper-collapse-group>
+        <template is="dom-repeat" items="[[data]]">
+          <paper-collapse-item icon="icons:info" header ="Relevé [[index]]">
+            <ul list-style-type="square">
+              <li>Email          : [[item.mail]]</li>
+              <li>Espèce         : [[item.espece]]</li>
+              <li>Famille        : [[item.famille]]</li>
+              <li>Longitude      : [[item.Longitude]]</li>
+              <li>Latitude       : [[item.Latitude]]</li>
+              <li><img src="[[item.URL_Image]]"/></li>
+            </ul>
+          </paper-collapse-item>
+        </template>
+      </paper-collapse-group>
+
+
+
+      <br/>
+      <h5>Ajouter un relevé :</h5>
+      <paper-input style="width:20em" label="Nom de l'espèce" value="{{specie}}" maxlength="30"></paper-input>
+      <paper-input style="width:20em" label="Nom de la famille" value="{{family}}" maxlength="30"></paper-input>
+
+      <input style="width:20em" type="file" id="file-uploader" accept="image/*" on-change="onFileUpload" hidden$="this.files.length>0"></input>
+
+      <firebase-storage-multiupload
+        app-name="iPreleveFirebase"
+        id="fs"
+        path="/relevesImages/[[user.email]]"
+        files="[[files]]"
+        upload-tasks="{{uploadTasks}}"
+        on-error="_showError"
+        force-unique
+        auto>
+      </firebase-storage-multiupload>
+      <template is="dom-repeat" items="[[uploadTasks]]">
+        <firebase-storage-upload-task
+          app-name="iPreleveFirebase"
+          task="[[item]]"
+          id="ut-[[index]]"
+          bytes-transferred="{{item.bytesTransferred}}"
+          total-bytes="{{item.totalBytes}}"
+          state="{{item.state}}"
+          download-url="{{item.downloadUrl}}"
+          metadata="{{item.metadata}}"
+          path="{{item.path}}">
+        </firebase-storage-upload-task>
+
+        Etat : [[item.state]] <br>
+
+        <template is="dom-if" if="[[!isEqual(item.state, 'success')]]">
+          <paper-progress
+            value="{{item.bytesTransferred}}"
+            min="0"
+            max="{{item.totalBytes}}">
+          </paper-progress>
+        </template>
+
+        <template is="dom-if" if="[[isEqual(item.state, 'success')]]">
+          <paper-button raised on-tap="_addData">Ajouter</paper-button>
+        </template>
+
+      </template>
+
+    </template>
+
+  </template>
+
+  <script>
+    class ViewRelevesApp extends Polymer.Element {
+      static get is() { return 'viewreleves-app'; }
+    }
+
+    window.customElements.define(ViewRelevesApp.is, ViewRelevesApp);
+  </script>
+</dom-module>
