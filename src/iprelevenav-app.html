@@ -68,6 +68,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
+    <!--Creation dialog-->
+
+    <paper-alert-dialog
+      id="dialogAuth0"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Email mal construit. Il doit être de la forme blabla@blabla.bla
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth1"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Aucune correspondance utilisateur/mot de passe. Le mot de passe est incorrect
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth2"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Utilisateur inexistant, veuillez changer l'adresse mail ou l'inscrire
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth3"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Trop de tentatives de connexions. Veuillez réessayer plus tard
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogAuth4"
+      title="Erreur d'authentification"
+      confirm-button="OK">
+      Erreur
+    </paper-alert-dialog>
+
+    <!--Fin creation dialog-->
+
     <app-location
         route="{{route}}"
         url-space-regex="^[[rootPath]]">
@@ -126,10 +165,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </template>
 
   <script>
-    //Récupérer évènements d'atuthentification
-    //document.addEventListener("authRequest", function(e){console.log("J'ai recu bro" + e.detail);});
-    //document.querySelector("viewauth-app").addEventListener("authRequest", function(){console.log("henlo you too bruh");});
-
     Polymer.setPassiveTouchGestures(true);
 
     class IPreleveNavApp extends Polymer.Element {
@@ -168,19 +203,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           //console.log(e.detail.code);
           switch(e.detail.code){
             case "auth/invalid-email":
-              alert("Email mal construit. Il doit être de la forme blabla@blabla.bla");
+              this.$.dialogAuth0.open();
               break;
             case "auth/wrong-password":
-              alert("Aucune correspondance utilisateur/mot de passe. Le mot de passe est incorrect");
+              this.$.dialogAuth1.open();
               break;
             case "auth/user-not-found":
-              alert("Utilisateur inexistant, veuillez changer l'adresse mail ou l'inscrire");
+              this.$.dialogAuth2.open();
               break;
             case "auth/too-many-requests":
-              alert("Trop de tentatives de connexions. Veuillez réessayer plus tard");
+              this.$.dialogAuth3.open();
               break;
             default:
-              alert("Erreur : " + e.detail.code);
+              this.$.dialogAuth4.setAttribute("Title", e.detail.code);
+              this.$.dialogAuth4.open();
           }
         });
       }

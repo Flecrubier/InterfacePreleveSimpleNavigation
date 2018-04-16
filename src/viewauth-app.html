@@ -13,10 +13,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-alert-dialog/paper-alert-dialog.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewauth-app">
   <template>
+
+    <!--Creation dialog-->
+
+      <paper-alert-dialog
+        id="dialogLabel0"
+        title="Erreur de saisie"
+        confirm-button="OK">
+        Il manque un email et/ou un mot de passe
+      </paper-alert-dialog>
+
+    <!--Fin creation dialog-->
+
     <style include="shared-styles">
       :host {
         display: block;
@@ -67,7 +80,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _login(){
         if(!this.mail || !this.mdp){
-          alert("Erreur : Il manque un email et/ou un mot de passe");
+          //alert("Erreur : Il manque un email et/ou un mot de passe");
+          this.$.dialogLabel0.open();
         }else{
           var authLoginEvent = new CustomEvent(
             "authLoginRequest",

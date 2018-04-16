@@ -20,7 +20,8 @@
     "paper-input": "^2.2.2",
     "paper-collapse-item": "^2.3.0",
     "paper-progress": "^2.1.1",
-    "geo-location": "^2.0.2"
+    "geo-location": "^2.0.2",
+    "paper-alert-dialog": "^2.0.1"
   },
   "resolutions": {
     "polymer": "^2.0.0"
