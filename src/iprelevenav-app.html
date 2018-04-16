@@ -155,14 +155,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           //console.log("henlo you too bruh, i know some things :");
           //console.log("Your mail is : " + e.detail.mail + " your 'secret' password is " + e.detail.mdp);
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
-          .then(function(response){console.log("yeee")})
-          .catch(function(error){console.log("badddd")});
+          .then(/*function(response){console.log("yeee")}*/)
+          .catch(/*function(error){console.log("badddd")}*/);
         });
         this.addEventListener("authLogoutRequest", function(e){
           //console.log("Good knight my broda");
           //console.log(this.user);
           this.$.auth.signOut();
           //console.log(this.user);
+        });
+        this.addEventListener("error", function(e){
+          //console.log(e.detail.code);
+          switch(e.detail.code){
+            case "auth/invalid-email":
+              alert("Email mal construit. Il doit être de la forme blabla@blabla.bla");
+              break;
+            case "auth/wrong-password":
+              alert("Aucune correspondance utilisateur/mot de passe. Le mot de passe est incorrect");
+              break;
+            case "auth/user-not-found":
+              alert("Utilisateur inexistant, veuillez changer l'adresse mail ou l'inscrire");
+              break;
+            case "auth/too-many-requests":
+              alert("Trop de tentatives de connexions. Veuillez réessayer plus tard");
+              break;
+            default:
+              alert("Erreur : " + e.detail.code);
+          }
         });
       }
 
