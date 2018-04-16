@@ -66,21 +66,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
       _login(){
-        var authLoginEvent = new CustomEvent(
-          "authLoginRequest",
-          {
-            detail:{
-              mail: this.mail,
-              mdp: this.mdp
-            },
-            bubbles: true,
-            composed: true
-          }
-        );
-        this.dispatchEvent(authLoginEvent);
-        /*this.$.auth.signInWithPopup()
-          .then(function(response){console.log("yeee")})
-          .catch(function(error){console.log("badddd")});*/
+        if(!this.mail || !this.mdp){
+          alert("Erreur : Il manque un email et/ou un mot de passe");
+        }else{
+          var authLoginEvent = new CustomEvent(
+            "authLoginRequest",
+            {
+              detail:{
+                mail: this.mail,
+                mdp: this.mdp
+              },
+              bubbles: true,
+              composed: true
+            }
+          );console.log(authLoginEvent);
+          this.dispatchEvent(authLoginEvent);
+        }
       }
       _logout(){
         var authLogoutEvent = new CustomEvent(
