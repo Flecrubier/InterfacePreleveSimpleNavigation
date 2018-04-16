@@ -9,6 +9,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-storage-multiupload.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-storage-upload-task.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-item.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../../bower_components/geo-location/geo-location.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewreleves-app">
@@ -23,6 +34,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
     <template is="dom-if" if="[[user]]">
+      <geo-location latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
+
+      <h4>S'il n'y a pas de valeur pour la latitude/longitude veuillez actualiser dans quelques instants</h4>
+      <div>Latitude : [[latitude]]</div>
+      <div>Longitude : [[longitude]]</div>
+
       <firebase-query
         app-name="iPreleveFirebase"
         id="query"
@@ -100,11 +117,61 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     </template>
 
+    <template is="dom-if" if="[[!user]]">
+      <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+    </template>
+
   </template>
 
   <script>
     class ViewRelevesApp extends Polymer.Element {
       static get is() { return 'viewreleves-app'; }
+
+      upload(){
+        if(this.shadowRoot.querySelector("#file-uploader").files.length == 0){
+          alert("Vous devez choisir une image");
+          return 1;
+        }else if(this.shadowRoot.querySelector("#file-uploader").files.length > 1){
+          alert("Vous ne pouvez upload qu'un seul fichier");
+          return 1;
+        }else{
+          this.shadowRoot.querySelector("#fs").upload(this.shadowRoot.querySelector("#file-uploader").files);
+          return 0;
+        }
+      }
+
+      _uploadTasksChanged(uploadTasks) {
+        //console.log(uploadTasks);
+      }
+
+      onFileUpload(e) {
+        this.files = e.target.files;
+        this.shadowRoot.querySelector("#file-uploader").style.visibility = "hidden";
+      }
+
+      isEqual(a, b) {
+        return a === b;
+      }
+
+      _addData(){
+        //if(this.upload() == 1) return;
+        console.log(this.user.email);
+        console.log(this.specie);
+        console.log(this.family);
+        console.log(this.longitude);
+        console.log(this.latitude);
+        console.log(this.shadowRoot.querySelector("#ut-0").downloadUrl);
+
+        this.shadowRoot.querySelector("#query").ref.push({
+          mail : this.user.email,
+          espece : this.specie,
+          famille : this.family,
+          Longitude : this.longitude,
+          Latitude : this.latitude,
+          URL_Image : this.shadowRoot.querySelector("#ut-0").downloadUrl
+        });
+        window.location.reload();
+      }
     }
 
     window.customElements.define(ViewRelevesApp.is, ViewRelevesApp);

@@ -12,6 +12,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewauth-app">
@@ -23,12 +24,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         padding: 10px;
       }
 
-      paper-button {
-        background: green;
-        color: yellow;
-        position: absolute;
-        left:35%;
-        top:45%;
+      .centerAuth{
+        position: fixed;
+        left:50%;
+        top:50%;
+        transform: translate(-50%, -50%);
       }
     </style>
 
@@ -49,11 +49,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       on-error="_showError">
     </firebase-auth>
 -->
-    <paper-input style="width:20em" label="Email" value="{{mail}}" maxlength="100"></paper-input>
-    <paper-input style="width:20em" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password"></paper-input>
+    <div class ="centerAuth">
+      <paper-input style="width:20em" label="Email" value="{{mail}}" maxlength="100" hidden$="[[user]]"></paper-input>
+      <paper-input style="width:20em" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password" hidden$="[[user]]"></paper-input>
 
-    <paper-button id="loginButton" raised on-tap="_login" hidden$="[[user]]">Connexion</paper-button>
-    <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
+      <paper-button id="loginButton" raised on-tap="_login" hidden$="[[user]]">Connexion</paper-button>
+      <h3 hidden$=[[!user]]>Connecté en tant que [[user.email]]</h3>
+      <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
+    </div>
   </template>
 
   <script>
@@ -63,7 +66,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 
       _login(){
-        document.dispatch("authRequest");
         var authLoginEvent = new CustomEvent(
           "authLoginRequest",
           {

@@ -85,9 +85,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="viewauth" href="[[rootPath]]viewauth">View One</a>
-          <a name="viewreleves" href="[[rootPath]]viewreleves">View Two</a>
-          <a name="viewinfo" href="[[rootPath]]viewinfo">View Three</a>
+          <a name="viewauth" href="[[rootPath]]viewauth">Connexion/Déconnexion</a>
+          <a name="viewreleves" href="[[rootPath]]viewreleves">Relevés</a>
+          <a name="viewinfo" href="[[rootPath]]viewinfo">Inforomations</a>
         </iron-selector>
       </app-drawer>
 
@@ -97,7 +97,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-header slot="header" condenses reveals effects="waterfall">
           <app-toolbar>
             <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
-            <div main-title>My App</div>
+            <div main-title>BotaDex</div>
           </app-toolbar>
         </app-header>
 
@@ -106,7 +106,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-          <viewauth-app name="viewauth"></viewauth-app>
+          <viewauth-app name="viewauth" user="[[user]]"></viewauth-app>
           <viewreleves-app name="viewreleves" user="[[user]]"></viewreleves-app>
           <viewinfo-app name="viewinfo"></viewinfo-app>
           <view404-app name="view404"></view404-app>
@@ -152,15 +152,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ready(){
         super.ready();
         this.addEventListener("authLoginRequest", function(e){
-          console.log("henlo you too bruh, i know some things :");
-          console.log("Your mail is : " + e.detail.mail + " your 'secret' password is " + e.detail.mdp);
+          //console.log("henlo you too bruh, i know some things :");
+          //console.log("Your mail is : " + e.detail.mail + " your 'secret' password is " + e.detail.mdp);
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
           .then(function(response){console.log("yeee")})
           .catch(function(error){console.log("badddd")});
         });
         this.addEventListener("authLogoutRequest", function(e){
-          console.log("Good knight my broda");
+          //console.log("Good knight my broda");
+          //console.log(this.user);
           this.$.auth.signOut();
+          //console.log(this.user);
         });
       }
 
