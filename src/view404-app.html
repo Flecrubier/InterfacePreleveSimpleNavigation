@@ -20,7 +20,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
-    Oops you hit a 404. <a href="[[rootPath]]">Head back to home.</a>
+    Vous êtes sur une page qui n'existe pas ou plus. <a href="[[rootPath]]">Retourner à l'accueil.</a>
   </template>
 
   <script>
@@ -28,8 +28,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get is() { return 'view404-app'; }
       static get properties() {
         return {
-          // This shouldn't be neccessary, but the Analyzer isn't picking up
-          // Polymer.Element#rootPath
           rootPath: String,
         };
       }

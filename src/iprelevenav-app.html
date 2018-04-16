@@ -25,6 +25,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="lazy-import" href="viewauth-app.html">
 <link rel="lazy-import" href="viewreleves-app.html">
 <link rel="lazy-import" href="viewinfo-app.html">
+<link rel="lazy-import" href="viewgmap-app.html">
 <link rel="lazy-import" href="view404-app.html">
 
 <dom-module id="iprelevenav-app">
@@ -125,7 +126,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
           <a name="viewauth" href="[[rootPath]]viewauth">Connexion/Déconnexion</a>
-          <a name="viewreleves" href="[[rootPath]]viewreleves">Relevés</a>
+          <a name="viewreleves" href="[[rootPath]]viewreleves">Gestion relevés</a>
+          <a name="viewgmap" href="[[rootPath]]viewgmap">Cartes de vos relevés</a>
           <a name="viewinfo" href="[[rootPath]]viewinfo">Informations</a>
         </iron-selector>
       </app-drawer>
@@ -147,6 +149,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             role="main">
           <viewauth-app name="viewauth" user="[[user]]"></viewauth-app>
           <viewreleves-app name="viewreleves" user="[[user]]"></viewreleves-app>
+          <viewgmap-app name="viewgmap" user="[[user]]"></viewgmap-app>
           <viewinfo-app name="viewinfo"></viewinfo-app>
           <view404-app name="view404"></view404-app>
         </iron-pages>

@@ -1,0 +1,61 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/google-map/google-map.html">
+<link rel="import" href="../../bower_components/google-map/google-map-marker.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="viewgmap-app">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <template is="dom-if" if="[[user]]">
+      <firebase-query
+        app-name="iPreleveFirebase"
+        id="queryG"
+        ref="{{refG}}"
+        path="/releves/[[user.uid]]"
+        data="{{dataG}}">
+      </firebase-query>
+
+      <google-map
+        style="height:90vh"
+        api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
+        longitude="2.4"
+        latitude="46.4762253"
+        zoom="6"
+        disableStreetViewControl
+        disableMapTypeControl>
+        <template is="dom-repeat" items="{{dataG}}">
+          <google-map-marker
+            longitude="[[item.Longitude]]"
+            latitude="[[item.Latitude]]"
+            title="[[item.espece]]">
+            <p><h3>[[item.espece]]</h3></p>
+            <img src="[[item.URL_Image]]">
+          </google-map-marker>
+        </template>
+      </google-map>
+
+    </template>
+
+    <template is="dom-if" if="[[!user]]">
+      <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
+    </template>
+
+  </template>
+
+  <script>
+    class ViewGMapApp extends Polymer.Element {
+      static get is() { return 'viewgmap-app'; }
+    }
+
+    window.customElements.define(ViewGMapApp.is, ViewGMapApp);
+  </script>
+</dom-module>

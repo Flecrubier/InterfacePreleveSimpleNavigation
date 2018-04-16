@@ -21,7 +21,8 @@
     "paper-collapse-item": "^2.3.0",
     "paper-progress": "^2.1.1",
     "geo-location": "^2.0.2",
-    "paper-alert-dialog": "^2.0.1"
+    "paper-alert-dialog": "^2.0.1",
+    "google-map": "^2.0.4"
   },
   "resolutions": {
     "polymer": "^2.0.0"
