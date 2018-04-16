@@ -29,9 +29,7 @@
         api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
         longitude="2.4"
         latitude="46.4762253"
-        zoom="6"
-        disableStreetViewControl
-        disableMapTypeControl>
+        zoom="6"><!--Obligé de zoom="6" car fit-to-markers ne semble pas fonctionner-->
         <template is="dom-repeat" items="{{dataG}}">
           <google-map-marker
             longitude="[[item.Longitude]]"
@@ -54,6 +52,10 @@
   <script>
     class ViewGMapApp extends Polymer.Element {
       static get is() { return 'viewgmap-app'; }
+
+      ready(){
+        super.ready();
+      }
     }
 
     window.customElements.define(ViewGMapApp.is, ViewGMapApp);

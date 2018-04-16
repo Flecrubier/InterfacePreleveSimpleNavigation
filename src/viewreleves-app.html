@@ -49,6 +49,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Vous ne pouvez choisir qu'un seul fichier
   </paper-alert-dialog>
 
+  <paper-alert-dialog
+    id="dialogDelete0"
+    title="Suppression relevé"
+    confirm-button="Oui"
+    dismiss-button="Non">
+    Voulez vous vraiment supprimmer ce relevé ?
+  </paper-alert-dialog>
+
 <!--Fin creation dialog-->
 
     <template is="dom-if" if="[[user]]">
@@ -79,6 +87,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <li>Longitude      : [[item.Longitude]]</li>
               <li>Latitude       : [[item.Latitude]]</li>
               <li><img src="[[item.URL_Image]]"/></li>
+              <li><paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button></li>
             </ul>
           </paper-collapse-item>
         </template>
@@ -205,6 +214,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       getIndex(index){
         return index+1;
+      }
+
+      deleteReleve(event){
+        var chaineId = event.detail.preventer.path[0].id;
+        var idReleve = chaineId.substring(chaineId.length-1);
+        /*console.log(idReleve);
+        console.log(event);
+        console.log(event.detail.preventer.path[0].id);*/
+        console.log("nande");
+        console.log(this.shadowRoot.querySelector("#query").ref.root);
+        console.log(this.shadowRoot.querySelector("#query").ref);
+        console.log(this.shadowRoot.querySelector("#query").ref.toJSON());
       }
     }
 
