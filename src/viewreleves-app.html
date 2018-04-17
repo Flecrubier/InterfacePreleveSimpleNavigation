@@ -20,6 +20,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-item.html">
 <link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-group.html">
 <link rel="import" href="../../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/device-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/image-icons.html">
 <link rel="import" href="../../bower_components/geo-location/geo-location.html">
 <link rel="import" href="shared-styles.html">
 
@@ -80,6 +86,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <paper-collapse-group>
         <template is="dom-repeat" items="[[data]]">
           <paper-collapse-item id="item[[index]]" icon="icons:info" header="Relevé [[getIndex(index)]]">
+            <!--
             <ul list-style-type="square">
               <li>Email          : [[item.mail]]</li>
               <li>Espèce         : [[item.espece]]</li>
@@ -89,6 +96,66 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <li><img src="[[item.URL_Image]]"/></li>
               <li><paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button></li>
             </ul>
+          -->
+            <div role="listbox">
+              <paper-icon-item>
+                <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Mail</div>
+                  <div secondary>[[item.mail]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Espèce</div>
+                  <div secondary>[[item.espece]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Famille</div>
+                  <div secondary>[[item.famille]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Longitude</div>
+                  <div secondary>[[item.Longitude]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Latitude</div>
+                  <div secondary>[[item.Latitude]]</div>
+                </paper-item-body>
+              </paper-icon-item>
+
+              <paper-icon-item>
+                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Image</div>
+                  <div secondary><img src="[[item.URL_Image ]]"></img></div>
+                </paper-item-body>
+              </paper-icon-item>
+
+<!--
+              <paper-icon-item>
+                <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
+                <paper-item-body two-lines>
+                  <div>Supprimmer</div>
+                  <div secondary><paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button></div>
+                </paper-item-body>
+              </paper-icon-item>
+-->
+            </div>
           </paper-collapse-item>
         </template>
       </paper-collapse-group>
