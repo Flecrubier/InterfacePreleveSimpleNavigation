@@ -4,6 +4,7 @@
 <link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-storage-multiupload.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-storage-upload-task.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-storage-ref.html">
 <link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
@@ -125,15 +126,12 @@
                 </paper-item-body>
               </paper-icon-item>
 
-<!--
+
               <paper-icon-item>
                 <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
-                <paper-item-body two-lines>
-                  <div>Supprimmer</div>
-                  <div secondary><paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button></div>
-                </paper-item-body>
+                  <paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
               </paper-icon-item>
--->
+
             </div>
           </paper-collapse-item>
         </template>
@@ -150,12 +148,14 @@
         app-name="iPreleveFirebase"
         id="fs"
         path="/relevesImages/[[user.email]]"
+        ref="{{fsRef}}"
         files="[[files]]"
         upload-tasks="{{uploadTasks}}"
         on-error="_showError"
         force-unique
         auto>
       </firebase-storage-multiupload>
+
       <template is="dom-repeat" items="[[uploadTasks]]">
         <firebase-storage-upload-task
           app-name="iPreleveFirebase"
@@ -199,6 +199,9 @@
         return{
           nbTasks:{
             type:Number
+          },
+          data:{
+            type:Array
           }
         }
       }
@@ -254,11 +257,40 @@
 
       deleteReleve(event){
         var chaineId = event.detail.preventer.path[0].id;
-        var idReleve = chaineId.substring(chaineId.length-1);
-        console.log("nande");
-        console.log(this.shadowRoot.querySelector("#query").ref.root);
-        console.log(this.shadowRoot.querySelector("#query").ref);
-        console.log(this.shadowRoot.querySelector("#query").ref.toJSON());
+        var idReleve = chaineId.substring("deleteReleveBtn".length);
+        var idReleveInt = parseInt(idReleve);
+        var wantedKey;
+        var count = 0;
+        //console.log(idReleve);
+        //console.log(this.data);
+        //console.log(this.data[idReleve]);
+        //console.log(this.shadowRoot.querySelector("#query").data);
+        //console.log(this.data);
+        //console.log(this.shadowRoot.querySelector("#query").ref);
+        this.shadowRoot.querySelector("#query").ref.orderByKey().limitToFirst(idReleveInt+1).on("child_added", function(snapshot){
+          //  console.log(snapshot.key);
+          if(count != idReleveInt) {
+            count++;
+          }else{
+            //console.log(snapshot);
+            wantedKey = snapshot.key;
+          }
+        });
+
+        console.log(this.shadowRoot.querySelector("#fs").ref.getRoot);
+        //console.log(wantedKey);
+        //console.log(this.shadowRoot.querySelector("#query").ref.child(wantedKey));
+        this.shadowRoot.querySelector("#query").ref.child(wantedKey).on("child_removed", function(oldChildSnapshot){
+          console.log(oldChildSnapshot);
+        });
+
+        this.shadowRoot.querySelector("#query").ref.child(wantedKey).remove(function(e){
+          //console.log(e);
+
+          //Faire référence à l'espace de stockage puis faire comme audessus, on compte les childs (avec limit to first et on)
+          //puis en récupère une clé ou la nom... et puis on restreint a cette clé/nom/... et on supprimme
+        });
+        //console.log(this.shadowRoot.querySelector("#query").data);
       }
     }
 
