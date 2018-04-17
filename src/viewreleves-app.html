@@ -1,13 +1,3 @@
-<!--
-@license
-Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
@@ -86,17 +76,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <paper-collapse-group>
         <template is="dom-repeat" items="[[data]]">
           <paper-collapse-item id="item[[index]]" icon="icons:info" header="Relevé [[getIndex(index)]]">
-            <!--
-            <ul list-style-type="square">
-              <li>Email          : [[item.mail]]</li>
-              <li>Espèce         : [[item.espece]]</li>
-              <li>Famille        : [[item.famille]]</li>
-              <li>Longitude      : [[item.Longitude]]</li>
-              <li>Latitude       : [[item.Latitude]]</li>
-              <li><img src="[[item.URL_Image]]"/></li>
-              <li><paper-button id="deleteReleveBtn[[index]]" raised on-tap="deleteReleve">Supprimmer</paper-button></li>
-            </ul>
-          -->
             <div role="listbox">
               <paper-icon-item>
                 <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
@@ -231,11 +210,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       upload(){
         if(this.shadowRoot.querySelector("#file-uploader").files.length == 0){
-          //alert("Vous devez choisir une image");
           this.$.dialogUpload0.open();
           return 1;
         }else if(this.shadowRoot.querySelector("#file-uploader").files.length > 1){
-          //alert("Vous ne pouvez upload qu'un seul fichier");
           this.$.dialogUpload1.open();
           return 1;
         }else{
@@ -245,7 +222,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _uploadTasksChanged(uploadTasks) {
-        //console.log(uploadTasks);
       }
 
       onFileUpload(e) {
@@ -259,13 +235,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _addData(){
-        /*console.log(this.user.email);
-        console.log(this.specie);
-        console.log(this.family);
-        console.log(this.longitude);
-        console.log(this.latitude);
-        console.log(this.shadowRoot.querySelector("#ut-"+ this.nbTasks).downloadUrl);*/
-
         this.shadowRoot.querySelector("#query").ref.push({
           mail : this.user.email,
           espece : this.specie,
@@ -286,9 +255,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       deleteReleve(event){
         var chaineId = event.detail.preventer.path[0].id;
         var idReleve = chaineId.substring(chaineId.length-1);
-        /*console.log(idReleve);
-        console.log(event);
-        console.log(event.detail.preventer.path[0].id);*/
         console.log("nande");
         console.log(this.shadowRoot.querySelector("#query").ref.root);
         console.log(this.shadowRoot.querySelector("#query").ref);
