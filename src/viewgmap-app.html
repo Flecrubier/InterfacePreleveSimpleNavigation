@@ -27,17 +27,17 @@
       <google-map
         style="height:90vh"
         api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
-        longitude="2.4"
-        latitude="46.4762253"
-        zoom="6"
+        id="map"
+        longitude="{{longMap}}"
+        latitude="{{latMap}}"
+        zoom="14"
         disable-map-type-control
         disable-street-view-control><!--Obligé de zoom="6" car fit-to-markers ne semble pas fonctionner-->
 
         <template is="dom-repeat" items="{{dataG}}">
           <google-map-marker
             longitude="[[item.Longitude]]"
-            latitude="[[item.Latitude]]"
-            title="[[item.espece]]">
+            latitude="[[item.Latitude]]">
             <p><h3>[[item.espece]]</h3></p>
             <img src="[[item.URL_Image]]">
           </google-map-marker>
@@ -56,8 +56,49 @@
     class ViewGMapApp extends Polymer.Element {
       static get is() { return 'viewgmap-app'; }
 
+      static get properties(){
+        return{
+          dataG:{
+            type:Array
+          },
+          longMap:{
+            type: Number,
+            value:2.4
+          },
+          latMap:{
+            type: Number,
+            value:46.4762253
+          }
+
+        }
+      }
+
+      static get observers(){
+        //return["callbackFunction(path)"" ici path c'est dataG.length]
+        return[
+          "_dataGChanged(dataG.length)"
+        ]
+      }
+
       ready(){
         super.ready();
+      }
+
+      _dataGChanged(changeLength){
+        //console.log(this.dataG);
+        if(this.dataG.length > 0){
+          var i = 0;
+          var moyLong = this.dataG[0].Longitude;
+          var moyLat = this.dataG[0].Latitude;
+          for(i = 1 ; i < this.dataG.length ; i++){
+            moyLong += this.dataG[i].Longitude;
+            moyLat += this.dataG[i].Latitude;
+          }
+          moyLong /= this.dataG.length;
+          moyLat /= this.dataG.length;
+          this.longMap = moyLong;
+          this.latMap = moyLat;
+        }
       }
     }
 
