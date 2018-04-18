@@ -1,0 +1,84 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="viewadmin-app">
+  <template>
+    <style>
+      :host {
+        display: block;
+
+        padding: 10px 20px;
+      }
+    </style>
+
+    <template is="dom-if" if="[[user]]">
+      Henlo [[user.email]]
+      Admin ?? [[isAdmin]]
+      <div hidden$=[[!isAdmin]]>
+        Henlo encore admins
+      </div>
+    </template>
+
+  </template>
+
+  <script>
+    class ViewAdminApp extends Polymer.Element {
+      static get is() { return 'viewadmin-app'; }
+
+      static get properties() {
+        return {
+          rootPath: String,
+          admins:{
+            type: Array,
+            readOnly: true,
+            notify: true,
+          },
+          isAdmin:{
+            type:Boolean,
+            value: false,
+            notify: true,
+          },
+          user:{
+            type: Object,
+            observer: "_userChanged",
+          },
+        };
+      }
+
+      static get observers(){
+        //return["callbackFunction(path)"" ici path c'est admins.length]
+        return[
+          "_adminsChanged(admins.length)"
+        ]
+      }
+
+      ready(){
+        super.ready();
+        var adminsArray = ["8h0ysggfujREgFntRco5bjEoWCi1"];
+        this.adminsHandler(adminsArray);
+      }
+
+      adminsHandler(admins){
+        this._setAdmins(admins);
+      }
+
+
+      _adminsChanged(changeLength){
+        if(this.user != null){
+          this.isAdmin = this.checkIsAdmin();
+        }
+      }
+
+      _userChanged(){
+        if(this.admins != null && this.user != null){
+          this.isAdmin = this.checkIsAdmin();
+        }
+      }
+
+      checkIsAdmin(){
+        return this.admins.includes(this.user.uid);
+      }
+    }
+
+    window.customElements.define(ViewAdminApp.is, ViewAdminApp);
+  </script>
+</dom-module>

@@ -6,6 +6,7 @@
     "src/viewreleves-app.html",
     "src/viewgmap-app.html",
     "src/viewinfo-app.html",
+    "src/viewadmin-app.html",
     "src/view404-app.html"
   ],
   "sources": [

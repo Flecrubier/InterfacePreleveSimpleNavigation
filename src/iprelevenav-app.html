@@ -118,6 +118,7 @@
           <a name="viewreleves" href="[[rootPath]]viewreleves">Gestion relevés</a>
           <a name="viewgmap" href="[[rootPath]]viewgmap">Cartes de vos relevés</a>
           <a name="viewinfo" href="[[rootPath]]viewinfo">Informations</a>
+          <a name="viewadmin" href="[[rootPath]]viewadmin">Administration</a>
         </iron-selector>
       </app-drawer>
 
@@ -139,6 +140,7 @@
           <viewreleves-app name="viewreleves" user="[[user]]"></viewreleves-app>
           <viewgmap-app name="viewgmap" user="[[user]]"></viewgmap-app>
           <viewinfo-app name="viewinfo"></viewinfo-app>
+          <viewadmin-app name="viewadmin" user="[[user]]"></viewadmin-app>
           <view404-app name="view404"></view404-app>
         </iron-pages>
       </app-header-layout>
@@ -174,6 +176,7 @@
         };
       }
 
+
       ready(){
         super.ready();
         this.addEventListener("authLoginRequest", function(e){
@@ -204,6 +207,8 @@
           }
         });
       }
+
+
 
       static get observers() {
         return [
