@@ -256,41 +256,31 @@
       }
 
       deleteReleve(event){
-        var chaineId = event.detail.preventer.path[0].id;
+        var chaineId = event.path[0].id;
         var idReleve = chaineId.substring("deleteReleveBtn".length);
         var idReleveInt = parseInt(idReleve);
         var wantedKey;
         var count = 0;
-        //console.log(idReleve);
-        //console.log(this.data);
-        //console.log(this.data[idReleve]);
-        //console.log(this.shadowRoot.querySelector("#query").data);
-        //console.log(this.data);
-        //console.log(this.shadowRoot.querySelector("#query").ref);
+        var wantedDownloadUrl;
         this.shadowRoot.querySelector("#query").ref.orderByKey().limitToFirst(idReleveInt+1).on("child_added", function(snapshot){
-          //  console.log(snapshot.key);
           if(count != idReleveInt) {
             count++;
           }else{
-            //console.log(snapshot);
             wantedKey = snapshot.key;
           }
         });
 
-        console.log(this.shadowRoot.querySelector("#fs").ref.getRoot);
-        //console.log(wantedKey);
-        //console.log(this.shadowRoot.querySelector("#query").ref.child(wantedKey));
         this.shadowRoot.querySelector("#query").ref.child(wantedKey).on("child_removed", function(oldChildSnapshot){
-          console.log(oldChildSnapshot);
+          if(oldChildSnapshot.key === "URL_Image"){
+            wantedDownloadUrl = oldChildSnapshot._e.T;
+          }
         });
 
         this.shadowRoot.querySelector("#query").ref.child(wantedKey).remove(function(e){
-          //console.log(e);
-
-          //Faire référence à l'espace de stockage puis faire comme audessus, on compte les childs (avec limit to first et on)
-          //puis en récupère une clé ou la nom... et puis on restreint a cette clé/nom/... et on supprimme
+          console.log("Fichier supprimmé");
         });
-        //console.log(this.shadowRoot.querySelector("#query").data);
+
+        this.shadowRoot.querySelector("#fs").storage.refFromURL(wantedDownloadUrl).delete(); //Delete a partir de l'url
       }
     }
 
