@@ -50,7 +50,8 @@
     id="dialogDelete0"
     title="Suppression relevé"
     confirm-button="Oui"
-    dismiss-button="Non">
+    dismiss-button="Non"
+    on-confirm="confirmDelete">
     Voulez vous vraiment supprimmer ce relevé ?
   </paper-alert-dialog>
 
@@ -202,6 +203,9 @@
           },
           data:{
             type:Array
+          },
+          eventBtn:{
+            type:Object
           }
         }
       }
@@ -256,7 +260,13 @@
       }
 
       deleteReleve(event){
-        var chaineId = event.path[0].id;
+        this.eventBtn=event;
+        this.$.dialogDelete0.open();
+      }
+
+      confirmDelete(){
+        console.log(this.eventBtn);
+        var chaineId = this.eventBtn.path[0].id;
         var idReleve = chaineId.substring("deleteReleveBtn".length);
         var idReleveInt = parseInt(idReleve);
         var wantedKey;
