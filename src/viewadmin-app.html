@@ -1,8 +1,23 @@
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-item.html">
+<link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/social-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/device-icons.html">
+<link rel="import" href="../../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="viewadmin-app">
   <template>
-    <style>
+    <style include="shared-styles">
       :host {
         display: block;
 
@@ -11,11 +26,155 @@
     </style>
 
     <template is="dom-if" if="[[user]]">
-      Henlo [[user.email]]
-      Admin ?? [[isAdmin]]
       <div hidden$=[[!isAdmin]]>
-        Henlo encore admins
+        <h3>Interface administration</h3>
+        Liste des utilisateurs
+        <!--query-->
+        <firebase-query
+          app-name="iPreleveFirebase"
+          id="queryUsers"
+          ref="{{refUsers}}"
+          path="/releves"
+          data="{{dataUsers}}">
+        </firebase-query>
+
+        <template is="dom-repeat" items="[[dataUsers]]" as="aUser">
+            <firebase-query
+              app-name="iPreleveFirebase"
+              id="releves[[aUser.$key]]"
+              ref="{{aUser.ref}}"
+              path="/releves/[[aUser.$key]]"
+              data="{{aUser.personalData}}">
+            </firebase-query>
+              <div class="card">
+                <div role="listbox">
+                  <!-- 1 -->
+                  <paper-icon-item>
+                    <iron-icon icon="social:person" slot="item-icon"></iron-icon>
+                    <paper-item-body two-lines>
+                      <div>[[aUser.personalData.0.mail]]</div>
+
+                      <!--Compter le nombre de relevés-->
+                      <div secondary>[[aUser.personalData.length]] relevés</div>
+                    </paper-item-body>
+                  </paper-icon-item>
+                <!-- /1 -->
+
+
+
+                <!-- 2 -->
+
+
+                <paper-item>
+                  <paper-item-body two-lines>
+                    <div>Relevés :</div>
+                    <div secondary>
+                      <paper-collapse-group>
+                        <template is="dom-repeat" items="[[aUser.personalData]]" as="relevesUser" index-as="indexReleves">
+
+                          <paper-collapse-item id="relevesUsers[[indexReleves]]" icon="icons:info" header="Relevé [[getIndex(indexReleves)]]">
+                            <div role="listbox">
+                              <paper-icon-item>
+                                <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Mail</div>
+                                  <div secondary>[[relevesUser.mail]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Espèce</div>
+                                  <div secondary>[[relevesUser.espece]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Famille</div>
+                                  <div secondary>[[relevesUser.famille]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Longitude</div>
+                                  <div secondary>[[relevesUser.Longitude]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Latitude</div>
+                                  <div secondary>[[relevesUser.Latitude]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Image</div>
+                                  <div secondary><img src="[[relevesUser.URL_Image ]]"></img></div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+
+                              <paper-icon-item>
+                                <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
+                                  <paper-button id="deleteUsersReleve[[users.$key]][[indexReleves]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
+                              </paper-icon-item>
+
+                            </div>
+                          </paper-collapse-item>
+
+                        </template>
+                      </paper-collapse-group>
+                    </div>
+                  </paper-item-body>
+                </paper-item>
+
+
+                      <!-- /2 -->
+
+
+
+
+                      <!-- 3 -->
+
+                      <!-- Inclure fonction quand toggle
+                <paper-toggle-button checked="[[isAdmin]]" toggles>Admin</paper-toggle-button>
+              -->
+
+                      <!-- /3 -->
+
+                      <!-- 4 -->
+
+              <!--
+              <paper-button
+                id="deleteUsers[[index]]"
+                raised on-tap="deleteUser">
+              Supprimmer utilisateur
+            </paper-button>
+          -->
+
+
+
+            </div>
+          </div>
+        </template>
       </div>
+
+      <div hidden$=[[isAdmin]]>
+        <h3 style="color:red">Vous n'êtes pas administrateur et n'avez donc pas accès à cette page</h3>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[!user]]">
+      <h3 style="color:red">Veuillez vous connecter pour pouvoir accéder à cette page</h3>
     </template>
 
   </template>
@@ -41,18 +200,24 @@
             type: Object,
             observer: "_userChanged",
           },
+          allUsersData:{
+            type: Array,
+          }
         };
       }
 
       static get observers(){
         //return["callbackFunction(path)"" ici path c'est admins.length]
         return[
-          "_adminsChanged(admins.length)"
+          "_adminsChanged(admins.length)",
+          "_allUsersDataChanges(allUsersData.length)"
         ]
       }
 
       ready(){
         super.ready();
+        this.allUsersRef=[];
+        this.allUsersData=[];
         var adminsArray = ["8h0ysggfujREgFntRco5bjEoWCi1"];
         this.adminsHandler(adminsArray);
       }
@@ -68,6 +233,10 @@
         }
       }
 
+      _allUsersDataChanges(changeLength){
+        //console.log(this.allUsersData);
+      }
+
       _userChanged(){
         if(this.admins != null && this.user != null){
           this.isAdmin = this.checkIsAdmin();
@@ -76,6 +245,20 @@
 
       checkIsAdmin(){
         return this.admins.includes(this.user.uid);
+      }
+
+      afficherUser(users){
+        console.log("User");
+        console.log(users);
+      }
+
+      afficherData(allUsersData){
+        console.log("Data");
+        console.log(allUsersData);
+      }
+
+      getIndex(index){
+        return index + 1;
       }
     }
 

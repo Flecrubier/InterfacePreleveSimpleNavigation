@@ -44,18 +44,36 @@
     </firebase-app>
 
     <div class ="centerAuth">
-      <paper-input style="width:20em" label="Email" value="{{mail}}" maxlength="100" hidden$="[[user]]"></paper-input>
-      <paper-input style="width:20em" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password" hidden$="[[user]]"></paper-input>
+      <h3>Connexion</h3>
+      <paper-input style="width:20em" id="labelMail" label="Email" value="{{mail}}" maxlength="100" hidden$="[[user]]"></paper-input>
+      <paper-input style="width:20em" id="labelMdp" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password" hidden$="[[user]]"></paper-input>
 
       <paper-button id="loginButton" raised on-tap="_login" hidden$="[[user]]">Connexion</paper-button>
       <h3 hidden$=[[!user]]>Connecté en tant que [[user.email]]</h3>
       <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
+
+      <!--Faire un séparateur (ligne...)-->
+      <h3>Inscription</h3>
+      <paper-input style="width:20em" id="registerMail" label="Email d'inscription" value="{{registermail}}" maxlength="100" hidden="[[user]]"></paper-input>
+      <paper-input style="width:20em" id="registerMdp" label="Mot de passe d'inscription" value="{{registermdp}}" maxlength="100" hidden="[[user]]"></paper-input>
+
+      <paper-button id="registerButton" raised on-tap="_register" hidden$=[[user]]>Inscription</paper-button>
     </div>
   </template>
 
   <script>
     class ViewAuthApp extends Polymer.Element {
       static get is() { return 'viewauth-app'; }
+
+      ready(){
+        super.ready();
+        this.addEventListener("authSucess", function(e){
+          console.log("Ca a réussi");
+        });
+        this.addEventListener("authFail", function(e){
+          console.log("Ca a foiré");
+        });
+      }
 
       _login(){
         if(!this.mail || !this.mdp){
@@ -75,7 +93,7 @@
           this.dispatchEvent(authLoginEvent);
         }
       }
-      
+
       _logout(){
         var authLogoutEvent = new CustomEvent(
           "authLogoutRequest",
@@ -85,6 +103,21 @@
           }
         );
         this.dispatchEvent(authLogoutEvent);
+      }
+
+      _register(){
+        var authRegisterEvent = new CustomEvent(
+          "authRegisterRequest",
+          {
+            detail:{
+              mail: this.registermail,
+              mdp: this.registermdp
+            },
+            bubbles: true,
+            composed: true
+          }
+        );
+        this.dispatchEvent(authRegisterEvent);
       }
     }
 

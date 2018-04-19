@@ -181,12 +181,16 @@
         super.ready();
         this.addEventListener("authLoginRequest", function(e){
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
-          .then(/*function(response){console.log("yeee")}*/)
-          .catch(/*function(error){console.log("badddd")}*/);
+          .then(/*Envoyer event pour elever le contnu des label*/this.sendSuccessEvent)
+          .catch(/*Envoyer event pour elever le contenu du label mdp*/this.sendFailEvent);
         });
         this.addEventListener("authLogoutRequest", function(e){
           this.$.auth.signOut();
         });
+        this.addEventListener("authRegisterRequest", function(e){
+          this.$.auth.createUserWithEmailAndPassword(e.detail.mail, e.detail.mdp)
+            .catch(function(error){console.log(error);});
+        })
         this.addEventListener("error", function(e){
           switch(e.detail.code){
             case "auth/invalid-email":
@@ -208,7 +212,27 @@
         });
       }
 
+      sendSuccessEvent(){
+        var authSucessEvent = new CustomEvent(
+          "authSucess",
+          {
+            bubbles: true,
+            composed: true
+          }
+        );
+        this.dispatchEvent(authSucessEvent);
+      }
 
+      sendFailEvent(){
+        var authFailEvent = new CustomEvent(
+          "authFail",
+          {
+            bubbles: true,
+            composed: true
+          }
+        );
+        this.dispatchEvent(authFailEvent);
+      }
 
       static get observers() {
         return [

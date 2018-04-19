@@ -22,7 +22,8 @@
     "paper-progress": "^2.1.1",
     "geo-location": "^2.0.2",
     "paper-alert-dialog": "^2.0.1",
-    "google-map": "^2.0.4"
+    "google-map": "^2.0.4",
+    "paper-toggle-button": "^2.1.1"
   },
   "resolutions": {
     "polymer": "^2.0.0"
