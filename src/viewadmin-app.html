@@ -8,6 +8,7 @@
 <link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-item.html">
 <link rel="import" href="../../bower_components/paper-collapse-item/paper-collapse-group.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/social-icons.html">
@@ -25,24 +26,52 @@
       }
     </style>
 
+    <paper-alert-dialog
+      id="dialogDelete0"
+      title="Suppression relevé"
+      confirm-button="Oui"
+      dismiss-button="Non"
+      on-confirm="confirmDeleteReleve">
+      Voulez vous vraiment supprimmer ce relevé ?
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogDelete1"
+      title="Suppression utilisateur"
+      confirm-button="Oui"
+      dismiss-button="Non"
+      on-confirm="confirmDeleteUser">
+      Voulez vous vraiment supprimmer cet utilisateur ?
+    </paper-alert-dialog>
+
+
+
     <template is="dom-if" if="[[user]]">
       <div hidden$=[[!isAdmin]]>
+
         <h3>Interface administration</h3>
         Liste des utilisateurs
         <!--query-->
         <firebase-query
           app-name="iPreleveFirebase"
           id="queryUsers"
-          ref="{{refUsers}}"
           path="/releves"
           data="{{dataUsers}}">
         </firebase-query>
 
         <template is="dom-repeat" items="[[dataUsers]]" as="aUser">
+
+          <firebase-storage-multiupload
+            app-name="iPreleveFirebase"
+            id="storage[[aUser.$key]]"
+            path="/relevesImages/[[aUser.personalData.0.mail]]"
+            files="[[aUser.files]]"
+            on-error="_showError">
+          </firebase-storage-multiupload>
+
             <firebase-query
               app-name="iPreleveFirebase"
               id="releves[[aUser.$key]]"
-              ref="{{aUser.ref}}"
               path="/releves/[[aUser.$key]]"
               data="{{aUser.personalData}}">
             </firebase-query>
@@ -125,7 +154,7 @@
 
                               <paper-icon-item>
                                 <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
-                                  <paper-button id="deleteUsersReleve[[users.$key]][[indexReleves]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
+                                  <paper-button id="deleteUsersReleve[[aUser.$key]]index[[indexReleves]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
                               </paper-icon-item>
 
                             </div>
@@ -145,21 +174,20 @@
 
                       <!-- 3 -->
 
-                      <!-- Inclure fonction quand toggle
-                <paper-toggle-button checked="[[isAdmin]]" toggles>Admin</paper-toggle-button>
+                       <!--Inclure fonction quand toggle-->
+                  <!--
+                <paper-toggle-button checked="[[aUser.isAdmin]]" toggles>Admin</paper-toggle-button>
               -->
 
                       <!-- /3 -->
 
                       <!-- 4 -->
 
-              <!--
               <paper-button
                 id="deleteUsers[[index]]"
                 raised on-tap="deleteUser">
               Supprimmer utilisateur
             </paper-button>
-          -->
 
 
 
@@ -200,9 +228,6 @@
             type: Object,
             observer: "_userChanged",
           },
-          allUsersData:{
-            type: Array,
-          }
         };
       }
 
@@ -210,14 +235,11 @@
         //return["callbackFunction(path)"" ici path c'est admins.length]
         return[
           "_adminsChanged(admins.length)",
-          "_allUsersDataChanges(allUsersData.length)"
         ]
       }
 
       ready(){
         super.ready();
-        this.allUsersRef=[];
-        this.allUsersData=[];
         var adminsArray = ["8h0ysggfujREgFntRco5bjEoWCi1"];
         this.adminsHandler(adminsArray);
       }
@@ -233,10 +255,6 @@
         }
       }
 
-      _allUsersDataChanges(changeLength){
-        //console.log(this.allUsersData);
-      }
-
       _userChanged(){
         if(this.admins != null && this.user != null){
           this.isAdmin = this.checkIsAdmin();
@@ -247,18 +265,49 @@
         return this.admins.includes(this.user.uid);
       }
 
-      afficherUser(users){
-        console.log("User");
-        console.log(users);
-      }
-
-      afficherData(allUsersData){
-        console.log("Data");
-        console.log(allUsersData);
-      }
-
       getIndex(index){
         return index + 1;
+      }
+
+      deleteReleve(item){
+        var chaineId = item.path[0].id.substring("deleteUsersReleve".length);
+        var splitChaineId = chaineId.split("index");
+
+        var userId = splitChaineId[0];
+        var numReleve = parseInt(splitChaineId[1]);
+        var wantedKey;
+        var wantedDownloadUrl;
+        var count = 0;
+
+        var ref = this.shadowRoot.querySelector("#releves" + userId).ref;
+
+        ref.orderByKey().limitToFirst(numReleve+1).on("child_added", function(snapshot){
+          if(count != numReleve){ count++ ;}
+          else{ wantedKey = snapshot.key;}
+        });
+
+        ref.child(wantedKey).on("child_removed", function(oldChildSnapshot){
+          if(oldChildSnapshot.key === "URL_Image"){
+            wantedDownloadUrl = oldChildSnapshot._e.T;
+          }
+        });
+
+        ref.child(wantedKey).remove(function(e){
+          console.log("Fichier supprimmé");
+        });
+
+        console.log(wantedKey);
+        console.log(wantedDownloadUrl);
+        this.shadowRoot.querySelector("#storage" + userId).storage.refFromURL(wantedDownloadUrl).delete();
+
+      }
+
+      deleteUser(item){
+        console.log(item);
+      }
+
+      _showError(error){
+        console.log(error);
       }
     }
 
