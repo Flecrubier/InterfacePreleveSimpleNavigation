@@ -75,9 +75,8 @@
 
       <br/>
       <h5>Liste des relevés actuels :</h5>
-      [[getDataUser()]]
       <paper-collapse-group>
-        <template is="dom-repeat" items="[[data]]">
+        <template is="dom-repeat" items="[[datas]]">
           <paper-collapse-item id="item[[index]]" icon="icons:info" header="Relevé [[getIndex(index)]]">
             <div role="listbox">
 
@@ -195,8 +194,12 @@
           nbTasks:{
             type:Number
           },
-          data:{
-            type:Array
+          datas:{
+            type:Array,
+            notify: true,
+            value:function(){
+              return [];
+            },
           },
           eventBtn:{
             type:Object
@@ -207,6 +210,67 @@
       constructor(){
         super();
         this.nbTasks=0;
+      }
+
+      static get observers() {
+        return [
+          'getDataUser(datas.*)',
+        ];
+      }
+
+      ready(){
+        super.ready();
+
+        var datasUser = [];
+        console.log(this.user.uid);
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
+                      .orderByKey().on("child_added",snapshot =>{
+                        console.log("ca ajoute poto");
+                        var datasUnReleve = snapshot.val();
+                        var unReleve = {
+                          espece : datasUnReleve.espece,
+                          famille : datasUnReleve.famille,
+                          URL_Image : datasUnReleve.URL_Image,
+                          Longitude : datasUnReleve.Longitude,
+                          Latitude : datasUnReleve.Latitude
+                        };
+                        //datasUser.push(unReleve);
+                        console.log("datasuser", datasUser);
+                        //this.datas=datasUser;
+                        this.datas.push(unReleve);
+                        console.log("datas", this.datas);
+          });
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
+                      .orderByKey().on("child_removed", oldChildSnapshot=>{
+                        var datasUnReleve = oldChildSnapshot.val();
+                        var unReleve = {
+                          espece : datasUnReleve.espece,
+                          famille : datasUnReleve.famille,
+                          URL_Image : datasUnReleve.URL_Image,
+                          Longitude : datasUnReleve.Longitude,
+                          Latitude : datasUnReleve.Latitude
+                        };
+                        //console.log("datas", this.datas);
+                        var index = this.checkReleve(unReleve);
+                        if(index > -1){
+                            this.datas.splice(index,1);
+                        }
+                        //console.log("datas", this.datas);
+                      });
+
+      }
+
+      checkReleve(releve){
+        for(var i = 0 ; i < this.datas.length ; i++){
+          if ( (this.datas[i].Longitude === releve.Longitude) &&
+            (this.datas[i].Latitude === releve.Latitude) &&
+            (this.datas[i].espece === releve.espece) &&
+            (this.datas[i].famille === releve.famille) &&
+            (this.datas[i].URL_Image === releve.URL_Image) ){
+              return i;
+            }
+        }
+        return -1;
       }
 
       upload(){
@@ -236,7 +300,8 @@
       }
 
       _addData(){
-        this.shadowRoot.querySelector("#query").ref.push({
+        //Retrouver nombre de relevés puis faire un ref.child("reeleve"+nbReleve+1).set({donnée});
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+this.datas.length).set({
           espece : this.specie,
           famille : this.family,
           Longitude : this.longitude,
@@ -262,33 +327,58 @@
         var chaineId = this.eventBtn.path[0].id;
         var idReleve = chaineId.substring("deleteReleveBtn".length);
         var idReleveInt = parseInt(idReleve);
-        var wantedKey;
-        var count = 0;
-        var wantedDownloadUrl;
-        this.shadowRoot.querySelector("#query").ref.orderByKey().limitToFirst(idReleveInt+1).on("child_added", function(snapshot){
-          if(count != idReleveInt) {
-            count++;
-          }else{
-            wantedKey = snapshot.key;
-          }
+        var wantedKey = "n"+idReleveInt;
+        var wantedDownloadUrl = this.datas[idReleveInt].URL_Image;
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/"+wantedKey).remove(function(e){
+          console.log("Fichier supprimmé")
         });
 
-        this.shadowRoot.querySelector("#query").ref.child(wantedKey).on("child_removed", function(oldChildSnapshot){
-          if(oldChildSnapshot.key === "URL_Image"){
-            wantedDownloadUrl = oldChildSnapshot._e.T;
-          }
-        });
+        this.refreshDBKeyNames(idReleveInt);
 
-        this.shadowRoot.querySelector("#query").ref.child(wantedKey).remove(function(e){
-          console.log("Fichier supprimmé");
-        });
+        firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl).delete();
 
-        this.shadowRoot.querySelector("#fs").storage.refFromURL(wantedDownloadUrl).delete(); //Delete a partir de l'url
+        //---------------------------------------
+        //Il faut renommer les releves
+        //---------------------------------------
+      }
+
+      refreshDBKeyNames(idDelete){
+        for(var i = idDelete ; i < this.datas.length ; i++){
+          var releveSuivant;
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
+            console.log("snapshot key", snapshot.key);
+            console.log("snapshot val", snapshot.val());
+
+            console.log("le n a remplir", "/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key);
+            console.log("avec ", "/releves/"+this.user.uid+"/releveUser/n"+(i+1)+"/"+snapshot.val());
+
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
+          });
+        }
+        //firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+this.datas.length).set(null);
       }
 
       getDataUser(){
 
+        //return datas;
+        //return array de tableau associatif (chaque item avec longitude, latitude, urlimage, espece, famille)
       }
+
+/*
+      pushDataIntoDatasArray(snapshot){
+        var datasUnReleve = snapshot.val();
+        var unReleve = {
+          espece : datasUnReleve.espece,
+          famille : datasUnReleve.famille,
+          URL_Image : datasUnReleve.URL_Image,
+          Longitude : datasUnReleve.Longitude,
+          Latitude : datasUnReleve.Latitude
+        }
+        this.datas.push(data);
+      }
+      */
     }
 
     window.customElements.define(ViewRelevesApp.is, ViewRelevesApp);

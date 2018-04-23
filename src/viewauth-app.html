@@ -36,7 +36,7 @@
 
     <div class ="centerAuth">
       <div class="card">
-        <h3 hidden$="[[user]]">Connexion</h3>
+        <h3>Connexion</h3>
         <paper-input style="width:20em" id="labelMail" label="Email" value="{{mail}}" maxlength="100" hidden$="[[user]]"></paper-input>
         <paper-input style="width:20em" id="labelMdp" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password" hidden$="[[user]]"></paper-input>
 
@@ -45,12 +45,12 @@
         <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
       </div>
       <!--Faire un séparateur (ligne...)-->
-      <div class="card">
-        <h3 hidden$="[[user]]">Inscription</h3>
-        <paper-input style="width:20em" id="registerMail" label="Email d'inscription" value="{{registermail}}" maxlength="100" hidden="[[user]]"></paper-input>
-        <paper-input style="width:20em" id="registerMdp" label="Mot de passe d'inscription" value="{{registermdp}}" type="password" maxlength="100" hidden="[[user]]"></paper-input>
+      <div class="card" hidden$=[[user]]>
+        <h3>Inscription</h3>
+        <paper-input style="width:20em" id="registerMail" label="Email d'inscription" value="{{registermail}}" maxlength="100"></paper-input>
+        <paper-input style="width:20em" id="registerMdp" label="Mot de passe d'inscription" value="{{registermdp}}" type="password" maxlength="100"></paper-input>
 
-        <paper-button id="registerButton" raised on-tap="_register" hidden$=[[user]]>Inscription</paper-button>
+        <paper-button id="registerButton" raised on-tap="_register">Inscription</paper-button>
       </div>
 
     </div>
