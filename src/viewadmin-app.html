@@ -64,7 +64,7 @@
           <firebase-storage-multiupload
             app-name="iPreleveFirebase"
             id="storage[[aUser.$key]]"
-            path="/relevesImages/[[aUser.personalData.0.mail]]"
+            path="/relevesImages/[[aUser.$key]]"
             files="[[aUser.files]]"
             on-error="_showError">
           </firebase-storage-multiupload>
@@ -72,7 +72,7 @@
             <firebase-query
               app-name="iPreleveFirebase"
               id="releves[[aUser.$key]]"
-              path="/releves/[[aUser.$key]]"
+              path="/releves/[[aUser.$key]]/releveUser"
               data="{{aUser.personalData}}">
             </firebase-query>
               <div class="card">
@@ -81,10 +81,10 @@
                   <paper-icon-item>
                     <iron-icon icon="social:person" slot="item-icon"></iron-icon>
                     <paper-item-body two-lines>
-                      <div>[[aUser.personalData.0.mail]]</div>
+                      <div>[[aUser.mail]]</div>
 
                       <!--Compter le nombre de relevés-->
-                      <div secondary>[[aUser.personalData.length]] relevés</div>
+                      <div secondary>[[getNbReleves(aUser.$key, aUser.personalData)]] relevés</div>
                     </paper-item-body>
                   </paper-icon-item>
                 <!-- /1 -->
@@ -103,13 +103,6 @@
 
                           <paper-collapse-item id="relevesUsers[[indexReleves]]" icon="icons:info" header="Relevé [[getIndex(indexReleves)]]">
                             <div role="listbox">
-                              <paper-icon-item>
-                                <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
-                                <paper-item-body two-lines>
-                                  <div>Mail</div>
-                                  <div secondary>[[relevesUser.mail]]</div>
-                                </paper-item-body>
-                              </paper-icon-item>
 
                               <paper-icon-item>
                                 <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
@@ -296,8 +289,8 @@
           console.log("Fichier supprimmé");
         });
 
-        console.log(wantedKey);
-        console.log(wantedDownloadUrl);
+        //console.log(wantedKey);
+        //console.log(wantedDownloadUrl);
         this.shadowRoot.querySelector("#storage" + userId).storage.refFromURL(wantedDownloadUrl).delete();
 
       }
@@ -308,6 +301,19 @@
 
       _showError(error){
         console.log(error);
+      }
+
+      getNbReleves(idUser, datas){
+        //console.log("releves" + idUser);
+        if(this.shadowRoot.querySelector("#releves" + idUser) != null){
+          return this.shadowRoot.querySelector("#releves" + idUser).data.length;
+        }else{
+          return "inconnu";
+        }
+
+        /*if(datas != null || datas != undefined){
+          return datas.length;
+        }*/
       }
     }
 

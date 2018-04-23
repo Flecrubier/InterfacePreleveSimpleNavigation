@@ -10,6 +10,8 @@
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="my-icons.html">
 
 <link rel="lazy-import" href="viewauth-app.html">
@@ -96,6 +98,20 @@
       Erreur d'authentification
     </paper-alert-dialog>
 
+    <paper-alert-dialog
+      id="dialogRegister0"
+      title="Mot de passe trop court/faible"
+      confirm-button="OK">
+      Votre mot de passe doit être long d'au moins 6 caractères
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogRegister1"
+      title="Email déjà utilisé"
+      confirm-button="OK">
+      Cet email est déjà utilisé pour un autre compte, veuillez changer d'adresse mail
+    </paper-alert-dialog>
+
     <!--Fin creation dialog-->
 
     <app-location
@@ -136,7 +152,7 @@
             attr-for-selected="name"
             fallback-selection="view404"
             role="main">
-          <viewauth-app name="viewauth" user="[[user]]"></viewauth-app>
+          <viewauth-app name="viewauth" user="[[user]]" mail="[[mail]]" mdp="[[mdp]]"></viewauth-app>
           <viewreleves-app name="viewreleves" user="[[user]]"></viewreleves-app>
           <viewgmap-app name="viewgmap" user="[[user]]"></viewgmap-app>
           <viewinfo-app name="viewinfo"></viewinfo-app>
@@ -146,11 +162,19 @@
       </app-header-layout>
     </app-drawer-layout>
 
+    <firebase-app
+      name="iPreleveFirebase"
+      api-key="AIzaSyARAy4a8CcjZXD2d4G34xUegbhhpuoJx-U"
+      auth-domain="interfaceprelevesimple.firebaseapp.com"
+      database-url="https://interfaceprelevesimple.firebaseio.com"
+      storage-bucket="gs://interfaceprelevesimple.appspot.com">
+    </firebase-app>
+
     <firebase-auth
       app-name="iPreleveFirebase"
       id="auth"
       provider="google"
-      user={{user}}
+      user="{{user}}"
       on-error="_showError">
     </firebase-auth>
 
@@ -181,16 +205,23 @@
         super.ready();
         this.addEventListener("authLoginRequest", function(e){
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
-          .then(/*Envoyer event pour elever le contnu des label*/this.sendSuccessEvent)
-          .catch(/*Envoyer event pour elever le contenu du label mdp*/this.sendFailEvent);
+          .then(function(ee){
+            /*Enlever contenu labels*/
+          })
+          .catch(function(ee){
+            /*Enlever contenu label mdp*/
+          })
         });
         this.addEventListener("authLogoutRequest", function(e){
           this.$.auth.signOut();
         });
         this.addEventListener("authRegisterRequest", function(e){
           this.$.auth.createUserWithEmailAndPassword(e.detail.mail, e.detail.mdp)
-            .catch(function(error){console.log(error);});
-        })
+            .then(this.pushMailForUser.bind(this))
+            .catch(function(error){
+              console.log(error);
+            });
+        });
         this.addEventListener("error", function(e){
           switch(e.detail.code){
             case "auth/invalid-email":
@@ -205,33 +236,17 @@
             case "auth/too-many-requests":
               this.$.dialogAuth3.open();
               break;
+            case "auth/weak-password":
+              this.$.dialogRegister0.open();
+              break;
+            case "auth/email-already-in-use":
+              this.$.dialogRegister1.open();
+              break;
             default:
               this.$.dialogAuth4.setAttribute("Title", e.detail.code);
               this.$.dialogAuth4.open();
           }
         });
-      }
-
-      sendSuccessEvent(){
-        var authSucessEvent = new CustomEvent(
-          "authSucess",
-          {
-            bubbles: true,
-            composed: true
-          }
-        );
-        this.dispatchEvent(authSucessEvent);
-      }
-
-      sendFailEvent(){
-        var authFailEvent = new CustomEvent(
-          "authFail",
-          {
-            bubbles: true,
-            composed: true
-          }
-        );
-        this.dispatchEvent(authFailEvent);
       }
 
       static get observers() {
@@ -265,6 +280,10 @@
         if(e){
           console.log(e);
         }
+      }
+
+      pushMailForUser(user){
+        firebase.app('iPreleveFirebase').database().ref("/releves/"+user.uid+"/mail").set(user.email);
       }
     }
 

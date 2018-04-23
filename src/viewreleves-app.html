@@ -68,24 +68,18 @@
         app-name="iPreleveFirebase"
         id="query"
         ref="{{ref}}"
-        path="/releves/[[user.uid]]"
+        path="/releves/[[user.uid]]/releveUser"
         data="{{data}}">
       </firebase-query>
 
 
       <br/>
       <h5>Liste des relevés actuels :</h5>
+      [[getDataUser()]]
       <paper-collapse-group>
         <template is="dom-repeat" items="[[data]]">
           <paper-collapse-item id="item[[index]]" icon="icons:info" header="Relevé [[getIndex(index)]]">
             <div role="listbox">
-              <paper-icon-item>
-                <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
-                <paper-item-body two-lines>
-                  <div>Mail</div>
-                  <div secondary>[[item.mail]]</div>
-                </paper-item-body>
-              </paper-icon-item>
 
               <paper-icon-item>
                 <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
@@ -148,7 +142,7 @@
       <firebase-storage-multiupload
         app-name="iPreleveFirebase"
         id="fs"
-        path="/relevesImages/[[user.email]]"
+        path="/relevesImages/[[user.uid]]"
         ref="{{fsRef}}"
         files="[[files]]"
         upload-tasks="{{uploadTasks}}"
@@ -243,7 +237,6 @@
 
       _addData(){
         this.shadowRoot.querySelector("#query").ref.push({
-          mail : this.user.email,
           espece : this.specie,
           famille : this.family,
           Longitude : this.longitude,
@@ -291,6 +284,10 @@
         });
 
         this.shadowRoot.querySelector("#fs").storage.refFromURL(wantedDownloadUrl).delete(); //Delete a partir de l'url
+      }
+
+      getDataUser(){
+
       }
     }
 

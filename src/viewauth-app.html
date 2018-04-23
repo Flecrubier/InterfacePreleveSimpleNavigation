@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
-<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/polymerfire/polymerfire.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-alert-dialog/paper-alert-dialog.html">
@@ -35,45 +34,31 @@
       }
     </style>
 
-    <firebase-app
-      name="iPreleveFirebase"
-      api-key="AIzaSyARAy4a8CcjZXD2d4G34xUegbhhpuoJx-U"
-      auth-domain="interfaceprelevesimple.firebaseapp.com"
-      database-url="https://interfaceprelevesimple.firebaseio.com"
-      storage-bucket="gs://interfaceprelevesimple.appspot.com">
-    </firebase-app>
-
     <div class ="centerAuth">
-      <h3>Connexion</h3>
-      <paper-input style="width:20em" id="labelMail" label="Email" value="{{mail}}" maxlength="100" hidden$="[[user]]"></paper-input>
-      <paper-input style="width:20em" id="labelMdp" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password" hidden$="[[user]]"></paper-input>
+      <div class="card">
+        <h3 hidden$="[[user]]">Connexion</h3>
+        <paper-input style="width:20em" id="labelMail" label="Email" value="{{mail}}" maxlength="100" hidden$="[[user]]"></paper-input>
+        <paper-input style="width:20em" id="labelMdp" label="Mot de passe" value="{{mdp}}" maxlength="100" type="password" hidden$="[[user]]"></paper-input>
 
-      <paper-button id="loginButton" raised on-tap="_login" hidden$="[[user]]">Connexion</paper-button>
-      <h3 hidden$=[[!user]]>Connecté en tant que [[user.email]]</h3>
-      <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
-
+        <paper-button id="loginButton" raised on-tap="_login" hidden$="[[user]]">Connexion</paper-button>
+        <h3 hidden$=[[!user]]>Connecté en tant que [[user.email]]</h3>
+        <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
+      </div>
       <!--Faire un séparateur (ligne...)-->
-      <h3>Inscription</h3>
-      <paper-input style="width:20em" id="registerMail" label="Email d'inscription" value="{{registermail}}" maxlength="100" hidden="[[user]]"></paper-input>
-      <paper-input style="width:20em" id="registerMdp" label="Mot de passe d'inscription" value="{{registermdp}}" maxlength="100" hidden="[[user]]"></paper-input>
+      <div class="card">
+        <h3 hidden$="[[user]]">Inscription</h3>
+        <paper-input style="width:20em" id="registerMail" label="Email d'inscription" value="{{registermail}}" maxlength="100" hidden="[[user]]"></paper-input>
+        <paper-input style="width:20em" id="registerMdp" label="Mot de passe d'inscription" value="{{registermdp}}" type="password" maxlength="100" hidden="[[user]]"></paper-input>
 
-      <paper-button id="registerButton" raised on-tap="_register" hidden$=[[user]]>Inscription</paper-button>
+        <paper-button id="registerButton" raised on-tap="_register" hidden$=[[user]]>Inscription</paper-button>
+      </div>
+
     </div>
   </template>
 
   <script>
     class ViewAuthApp extends Polymer.Element {
       static get is() { return 'viewauth-app'; }
-
-      ready(){
-        super.ready();
-        this.addEventListener("authSucess", function(e){
-          console.log("Ca a réussi");
-        });
-        this.addEventListener("authFail", function(e){
-          console.log("Ca a foiré");
-        });
-      }
 
       _login(){
         if(!this.mail || !this.mdp){
