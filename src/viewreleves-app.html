@@ -196,13 +196,12 @@
           },
           datas:{
             type:Array,
-            notify: true,
-            value:function(){
-              return [];
-            },
           },
           eventBtn:{
             type:Object
+          },
+          doAdded:{
+            type:Boolean
           }
         }
       }
@@ -210,6 +209,8 @@
       constructor(){
         super();
         this.nbTasks=0;
+        this.datas=[];
+        this.doAdded = true;
       }
 
       static get observers() {
@@ -221,47 +222,45 @@
       ready(){
         super.ready();
 
-        var datasUser = [];
-        console.log(this.user.uid);
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
-                      .orderByKey().on("child_added",snapshot =>{
-                        console.log("ca ajoute poto");
-                        var datasUnReleve = snapshot.val();
-                        var unReleve = {
-                          espece : datasUnReleve.espece,
-                          famille : datasUnReleve.famille,
-                          URL_Image : datasUnReleve.URL_Image,
-                          Longitude : datasUnReleve.Longitude,
-                          Latitude : datasUnReleve.Latitude
-                        };
-                        //datasUser.push(unReleve);
-                        console.log("datasuser", datasUser);
-                        //this.datas=datasUser;
-                        this.datas.push(unReleve);
-                        console.log("datas", this.datas);
-          });
-          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
-                      .orderByKey().on("child_removed", oldChildSnapshot=>{
-                        var datasUnReleve = oldChildSnapshot.val();
-                        var unReleve = {
-                          espece : datasUnReleve.espece,
-                          famille : datasUnReleve.famille,
-                          URL_Image : datasUnReleve.URL_Image,
-                          Longitude : datasUnReleve.Longitude,
-                          Latitude : datasUnReleve.Latitude
-                        };
-                        //console.log("datas", this.datas);
-                        var index = this.checkReleve(unReleve);
-                        if(index > -1){
-                            this.datas.splice(index,1);
+                      .on("child_added",snapshot =>{
+                        if(this.doAdded){
+                          var datasUnReleve = snapshot.val();
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            famille : datasUnReleve.famille,
+                            URL_Image : datasUnReleve.URL_Image,
+                            Longitude : datasUnReleve.Longitude,
+                            Latitude : datasUnReleve.Latitude
+                          };
+                          this.push("datas", unReleve);
                         }
-                        //console.log("datas", this.datas);
-                      });
+          });
 
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
+                      .on("child_removed", oldChildSnapshot=>{
+                        if(this.doAdded){
+                          var datasUnReleve = oldChildSnapshot.val();
+                          console.log(datasUnReleve);
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            famille : datasUnReleve.famille,
+                            URL_Image : datasUnReleve.URL_Image,
+                            Longitude : datasUnReleve.Longitude,
+                            Latitude : datasUnReleve.Latitude
+                          };
+                          var index = this.checkReleve(unReleve);
+                          console.log(index);
+                          if(index > -1){
+                              this.splice("datas", index, 1);
+                          }
+                        }
+          });
       }
 
       checkReleve(releve){
         for(var i = 0 ; i < this.datas.length ; i++){
+          console.log("Comparer", this.datas[i], releve);
           if ( (this.datas[i].Longitude === releve.Longitude) &&
             (this.datas[i].Latitude === releve.Latitude) &&
             (this.datas[i].espece === releve.espece) &&
@@ -337,48 +336,33 @@
         this.refreshDBKeyNames(idReleveInt);
 
         firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl).delete();
-
-        //---------------------------------------
-        //Il faut renommer les releves
-        //---------------------------------------
       }
 
       refreshDBKeyNames(idDelete){
+        //--On n'exécute pas la code des on crées dans le ready pour le déplcement des données
+        this.doAdded = false;
+        //--
         for(var i = idDelete ; i < this.datas.length ; i++){
-          var releveSuivant;
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
-            console.log("snapshot key", snapshot.key);
-            console.log("snapshot val", snapshot.val());
-
-            console.log("le n a remplir", "/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key);
-            console.log("avec ", "/releves/"+this.user.uid+"/releveUser/n"+(i+1)+"/"+snapshot.val());
-
             firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
             firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
           });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).off("child_added");
         }
-        //firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+this.datas.length).set(null);
+        //--
+        this.doAdded = true;
+        //--
       }
 
       getDataUser(){
-
-        //return datas;
+        return this.datas;
         //return array de tableau associatif (chaque item avec longitude, latitude, urlimage, espece, famille)
       }
 
-/*
-      pushDataIntoDatasArray(snapshot){
-        var datasUnReleve = snapshot.val();
-        var unReleve = {
-          espece : datasUnReleve.espece,
-          famille : datasUnReleve.famille,
-          URL_Image : datasUnReleve.URL_Image,
-          Longitude : datasUnReleve.Longitude,
-          Latitude : datasUnReleve.Latitude
-        }
-        this.datas.push(data);
+      getDataUser(thing){
+        return this.datas;
       }
-      */
     }
 
     window.customElements.define(ViewRelevesApp.is, ViewRelevesApp);
