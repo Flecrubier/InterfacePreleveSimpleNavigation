@@ -213,12 +213,6 @@
         this.doAdded = true;
       }
 
-      static get observers() {
-        return [
-          'getDataUser(datas.*)',
-        ];
-      }
-
       ready(){
         super.ready();
 
@@ -241,7 +235,6 @@
                       .on("child_removed", oldChildSnapshot=>{
                         if(this.doAdded){
                           var datasUnReleve = oldChildSnapshot.val();
-                          console.log(datasUnReleve);
                           var unReleve = {
                             espece : datasUnReleve.espece,
                             famille : datasUnReleve.famille,
@@ -250,7 +243,6 @@
                             Latitude : datasUnReleve.Latitude
                           };
                           var index = this.checkReleve(unReleve);
-                          console.log(index);
                           if(index > -1){
                               this.splice("datas", index, 1);
                           }
@@ -260,7 +252,6 @@
 
       checkReleve(releve){
         for(var i = 0 ; i < this.datas.length ; i++){
-          console.log("Comparer", this.datas[i], releve);
           if ( (this.datas[i].Longitude === releve.Longitude) &&
             (this.datas[i].Latitude === releve.Latitude) &&
             (this.datas[i].espece === releve.espece) &&
@@ -322,7 +313,6 @@
       }
 
       confirmDelete(){
-        console.log(this.eventBtn);
         var chaineId = this.eventBtn.path[0].id;
         var idReleve = chaineId.substring("deleteReleveBtn".length);
         var idReleveInt = parseInt(idReleve);
@@ -330,7 +320,7 @@
         var wantedDownloadUrl = this.datas[idReleveInt].URL_Image;
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/"+wantedKey).remove(function(e){
-          console.log("Fichier supprimmé")
+          console.log("Fichier supprimmé");
         });
 
         this.refreshDBKeyNames(idReleveInt);
@@ -353,15 +343,6 @@
         //--
         this.doAdded = true;
         //--
-      }
-
-      getDataUser(){
-        return this.datas;
-        //return array de tableau associatif (chaque item avec longitude, latitude, urlimage, espece, famille)
-      }
-
-      getDataUser(thing){
-        return this.datas;
       }
     }
 

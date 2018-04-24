@@ -221,7 +221,22 @@
             type: Object,
             observer: "_userChanged",
           },
+          datas:{
+            type:Array
+          },
+          eventBtn:{
+            type:Object
+          },
+          doAdded:{
+            type:Boolean
+          }
         };
+      }
+
+      constructor(){
+        super();
+        this.datas = [];
+        this.doAdded = true;
       }
 
       static get observers(){
