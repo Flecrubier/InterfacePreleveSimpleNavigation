@@ -20,7 +20,7 @@
         app-name="iPreleveFirebase"
         id="queryG"
         ref="{{refG}}"
-        path="/releves/[[user.uid]]"
+        path="/releves/[[user.uid]]/releveUser"
         data="{{dataG}}">
       </firebase-query>
 
@@ -36,8 +36,8 @@
 
         <template is="dom-repeat" items="{{dataG}}">
           <google-map-marker
-            longitude="[[item.Longitude]]"
-            latitude="[[item.Latitude]]">
+            longitude="[[getNumberFromString(item.Longitude)]]"
+            latitude="[[getNumberFromString(item.Latitude)]]">
             <p><h3>[[item.espece]]</h3></p>
             <img src="[[item.URL_Image]]">
           </google-map-marker>
@@ -99,6 +99,10 @@
           this.longMap = moyLong;
           this.latMap = moyLat;
         }
+      }
+
+      getNumberFromString(string){
+        return parseFloat(string);
       }
     }
 

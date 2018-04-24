@@ -64,15 +64,6 @@
       <div>Latitude : [[latitude]]</div>
       <div>Longitude : [[longitude]]</div>
 
-      <firebase-query
-        app-name="iPreleveFirebase"
-        id="query"
-        ref="{{ref}}"
-        path="/releves/[[user.uid]]/releveUser"
-        data="{{data}}">
-      </firebase-query>
-
-
       <br/>
       <h5>Liste des relevés actuels :</h5>
       <paper-collapse-group>
@@ -215,6 +206,8 @@
 
       ready(){
         super.ready();
+
+        //Réinitialiser array avec un évènement
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
                       .on("child_added",snapshot =>{

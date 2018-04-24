@@ -26,6 +26,8 @@
       }
     </style>
 
+    <!--Création dialog-->
+
     <paper-alert-dialog
       id="dialogDelete0"
       title="Suppression relevé"
@@ -51,15 +53,8 @@
 
         <h3>Interface administration</h3>
         Liste des utilisateurs
-        <!--query-->
-        <firebase-query
-          app-name="iPreleveFirebase"
-          id="queryUsers"
-          path="/releves"
-          data="{{dataUsers}}">
-        </firebase-query>
 
-        <template is="dom-repeat" items="[[dataUsers]]" as="aUser">
+        <template is="dom-repeat" items="[[datas]]" as="aUser">
 
           <firebase-storage-multiupload
             app-name="iPreleveFirebase"
@@ -69,12 +64,6 @@
             on-error="_showError">
           </firebase-storage-multiupload>
 
-            <firebase-query
-              app-name="iPreleveFirebase"
-              id="releves[[aUser.$key]]"
-              path="/releves/[[aUser.$key]]/releveUser"
-              data="{{aUser.personalData}}">
-            </firebase-query>
               <div class="card">
                 <div role="listbox">
                   <!-- 1 -->
@@ -84,7 +73,7 @@
                       <div>[[aUser.mail]]</div>
 
                       <!--Compter le nombre de relevés-->
-                      <div secondary>[[getNbReleves(aUser.$key, aUser.personalData)]] relevés</div>
+                      <div secondary>[[aUser.releves.length]] relevés</div>
                     </paper-item-body>
                   </paper-icon-item>
                 <!-- /1 -->
@@ -99,7 +88,7 @@
                     <div>Relevés :</div>
                     <div secondary>
                       <paper-collapse-group>
-                        <template is="dom-repeat" items="[[aUser.personalData]]" as="relevesUser" index-as="indexReleves">
+                        <template is="dom-repeat" items="[[aUser.releves]]" as="relevesUser" index-as="indexReleves">
 
                           <paper-collapse-item id="relevesUsers[[indexReleves]]" icon="icons:info" header="Relevé [[getIndex(indexReleves)]]">
                             <div role="listbox">
@@ -140,14 +129,14 @@
                                 <iron-icon icon="image:image" slot="item-icon"></iron-icon>
                                 <paper-item-body two-lines>
                                   <div>Image</div>
-                                  <div secondary><img src="[[relevesUser.URL_Image ]]"></img></div>
+                                  <div secondary><img src="[[relevesUser.URL_Image]]"></img></div>
                                 </paper-item-body>
                               </paper-icon-item>
 
 
                               <paper-icon-item>
                                 <iron-icon icon="icons:delete-forever" slot="item-icon"></iron-icon>
-                                  <paper-button id="deleteUsersReleve[[aUser.$key]]index[[indexReleves]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
+                                  <paper-button id="deleteUsersReleve[[index]]nb[[indexReleves]]" raised on-tap="deleteReleve">Supprimmer</paper-button>
                               </paper-icon-item>
 
                             </div>
@@ -175,6 +164,8 @@
                       <!-- /3 -->
 
                       <!-- 4 -->
+
+              </br>
 
               <paper-button
                 id="deleteUsers[[index]]"
@@ -250,6 +241,50 @@
         super.ready();
         var adminsArray = ["8h0ysggfujREgFntRco5bjEoWCi1"];
         this.adminsHandler(adminsArray);
+
+        //ref on child_added
+        firebase.app("iPreleveFirebase").database().ref("/releves").on("child_added", snapshot =>{
+          if(this.doAdded){
+            var datasUnUser = snapshot.val();
+            //Il faut créer un Array a partir de releveUser sinon pas de dom-repeat possible
+            var releveUnUser = datasUnUser.releveUser;
+            var arrayReleve = [];
+            for(var item in releveUnUser){
+              arrayReleve.push(releveUnUser[item]);
+            }
+
+            var unUser = {
+              id : snapshot.key,
+              mail : datasUnUser.mail,
+              releves : arrayReleve
+            };
+            this.push("datas", unUser);
+          }
+        });
+
+        //ref on child_deleted
+        firebase.app("iPreleveFirebase").database().ref("/releves").on("child_removed", oldChildSnapshot =>{
+          if(this.doAdded){
+            var datasUnUser = oldChildSnapshot.val();
+            console.log(datasUnUser);
+          }
+        });
+
+        console.log(this.datas);
+        for(var i = 0 ; i < this.datas.length ; i++){
+          console.log(this.datas[i].id);
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[i].id+"/releveUser")
+                      .on("child_removed", oldChildSnapshot=>{
+                        //if
+                          var datasUnReleveUser = oldChildSnapshot.val();
+                          console.log(datasUnReleveUser);
+                          console.log(checkReleve(i, datasUnReleveUser));
+                      });
+        }
+      }
+
+      checkReleve(numUser, releve){
+
       }
 
       adminsHandler(admins){
@@ -277,37 +312,51 @@
         return index + 1;
       }
 
-      deleteReleve(item){
-        var chaineId = item.path[0].id.substring("deleteUsersReleve".length);
-        var splitChaineId = chaineId.split("index");
+      deleteReleve(event){
+        this.eventBtn = event;
+        this.$.dialogDelete0.open();
+      }
+
+      confirmDeleteReleve(){
+        var chaineId = this.eventBtn.path[0].id.substring("deleteUsersReleve".length);
+        var splitChaineId = chaineId.split("nb");
 
         var userId = splitChaineId[0];
-        var numReleve = parseInt(splitChaineId[1]);
-        var wantedKey;
-        var wantedDownloadUrl;
-        var count = 0;
+        var numReleve = splitChaineId[1];
+        var wantedKey = "n"+numReleve;
+        var wantedDownloadUrl = this.datas[userId].releves[numReleve].URL_Image;
 
-        var ref = this.shadowRoot.querySelector("#releves" + userId).ref;
-
-        ref.orderByKey().limitToFirst(numReleve+1).on("child_added", function(snapshot){
-          if(count != numReleve){ count++ ;}
-          else{ wantedKey = snapshot.key;}
+        //delete
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[userId].id+"/releveUser/"+wantedKey).remove(function(e){
+          console.log("Releves supprimmé");
         });
 
-        ref.child(wantedKey).on("child_removed", function(oldChildSnapshot){
-          if(oldChildSnapshot.key === "URL_Image"){
-            wantedDownloadUrl = oldChildSnapshot._e.T;
-          }
-        });
+        //reordonner relevés
+        this.updateDBKeyNames(userId, numReleve);
 
-        ref.child(wantedKey).remove(function(e){
-          console.log("Fichier supprimmé");
-        });
+        //delete dans stockage
+        firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl).delete();
+      }
 
-        //console.log(wantedKey);
-        //console.log(wantedDownloadUrl);
-        this.shadowRoot.querySelector("#storage" + userId).storage.refFromURL(wantedDownloadUrl).delete();
+      updateDBKeyNames(numUser, idDelete){
+        this.doAdded = false;
 
+        var userId = this.datas[numUser].id;
+        console.log("userId ", userId);
+        console.log("numUser ", numUser);
+        console.log("idDelete ", idDelete);
+        console.log("length ", this.datas[numUser].releves.length);
+        for(var i = idDelete ; i < this.datas[numUser].releves.length ; i++){
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
+            console.log("why ?");
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)).off("child_added");
+        }
+
+        this.doAdded = true;
       }
 
       deleteUser(item){
