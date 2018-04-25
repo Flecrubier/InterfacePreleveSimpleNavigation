@@ -242,6 +242,8 @@
         var adminsArray = ["8h0ysggfujREgFntRco5bjEoWCi1"];
         this.adminsHandler(adminsArray);
 
+        //Creer un on child_added et un on child_removed dans le on child added du user.
+        //Ainsi on aura des observeurs sur chaque tableau de relevés (impératif pour mettre à jour l'affichage)
         //ref on child_added
         firebase.app("iPreleveFirebase").database().ref("/releves").on("child_added", snapshot =>{
           if(this.doAdded){
@@ -260,10 +262,51 @@
             };
             this.push("datas", unUser);
           }
+            var count = 0;
+            var numUser = (this.datas.length) -1;
+
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[numUser].id+"/releveUser").on("child_added", snapshot =>{
+              if(this.doAdded){
+                if(count === 0){
+                  this.datas[numUser].releves = [];
+                }
+                count++;
+                var datasUnReleve = snapshot.val();
+                var unReleve = {
+                  espece : datasUnReleve.espece,
+                  famille : datasUnReleve.famille,
+                  URL_Image : datasUnReleve.URL_Image,
+                  Longitude : datasUnReleve.Longitude,
+                  Latitude : datasUnReleve.Latitude
+                };
+                this.push("datas."+numUser+".releves", unReleve);
+              }
+            });
+
+            //Faire le on child added et removed pour les relevés d'un user
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[numUser].id+"/releveUser").on("child_removed", oldChildSnapshot =>{
+              if(this.doAdded){
+                var datasUnReleve = oldChildSnapshot.val();
+                var unReleve = {
+                  espece : datasUnReleve.espece,
+                  famille : datasUnReleve.famille,
+                  URL_Image : datasUnReleve.URL_Image,
+                  Longitude : datasUnReleve.Longitude,
+                  Latitude : datasUnReleve.Latitude
+                };
+                var index = this.checkReleve(numUser, unReleve);
+                if(index > -1){
+                  this.splice("datas."+numUser+".releves", index, 1);
+                }
+              }
+            });
+
         });
 
         //ref on child_deleted
         firebase.app("iPreleveFirebase").database().ref("/releves").on("child_removed", oldChildSnapshot =>{
+          //splice sur this.datas[numUser];
+          //fait un off sur les child dded et removed des relevés
           if(this.doAdded){
             var datasUnUser = oldChildSnapshot.val();
             console.log(datasUnUser);
@@ -284,7 +327,16 @@
       }
 
       checkReleve(numUser, releve){
-
+        for(var i = 0 ; i < this.datas[numUser].releves.length ; i++){
+          if ( (this.datas[numUser].releves[i].Longitude === releve.Longitude) &&
+            (this.datas[numUser].releves[i].Latitude === releve.Latitude) &&
+            (this.datas[numUser].releves[i].espece === releve.espece) &&
+            (this.datas[numUser].releves[i].famille === releve.famille) &&
+            (this.datas[numUser].releves[i].URL_Image === releve.URL_Image) ){
+              return i;
+            }
+        }
+        return -1;
       }
 
       adminsHandler(admins){
@@ -322,7 +374,7 @@
         var splitChaineId = chaineId.split("nb");
 
         var userId = splitChaineId[0];
-        var numReleve = splitChaineId[1];
+        var numReleve = parseInt(splitChaineId[1]);
         var wantedKey = "n"+numReleve;
         var wantedDownloadUrl = this.datas[userId].releves[numReleve].URL_Image;
 
@@ -342,13 +394,8 @@
         this.doAdded = false;
 
         var userId = this.datas[numUser].id;
-        console.log("userId ", userId);
-        console.log("numUser ", numUser);
-        console.log("idDelete ", idDelete);
-        console.log("length ", this.datas[numUser].releves.length);
         for(var i = idDelete ; i < this.datas[numUser].releves.length ; i++){
-          firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
-            console.log("why ?");
+            firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
             firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
             firebase.app("iPreleveFirebase").database().ref("/releves/"+userId+"/releveUser/n"+(i+1)+"/"+snapshot.key).set(null);
           });
