@@ -38,12 +38,21 @@
     </paper-alert-dialog>
 
     <paper-alert-dialog
-      id="dialogDelete1"
-      title="Suppression utilisateur"
+      id="dialogBlock0"
+      title="Bloquer utilisateur"
       confirm-button="Oui"
       dismiss-button="Non"
-      on-confirm="confirmDeleteUser">
-      Voulez vous vraiment supprimmer cet utilisateur ?
+      on-confirm="confirmBlockUser">
+      Voulez vous vraiment bloquer cet utilisateur ?
+    </paper-alert-dialog>
+
+    <paper-alert-dialog
+      id="dialogBlock1"
+      title="Débloquer utilisateur"
+      confirm-button="Oui"
+      dismiss-button="Non"
+      on-confirm="confirmUnblockUser">
+      Voulez vous vraiment débloquer cet utilisateur ?
     </paper-alert-dialog>
 
 
@@ -55,14 +64,6 @@
         Liste des utilisateurs
 
         <template is="dom-repeat" items="[[datas]]" as="aUser">
-
-          <firebase-storage-multiupload
-            app-name="iPreleveFirebase"
-            id="storage[[aUser.$key]]"
-            path="/relevesImages/[[aUser.$key]]"
-            files="[[aUser.files]]"
-            on-error="_showError">
-          </firebase-storage-multiupload>
 
               <div class="card">
                 <div role="listbox">
@@ -168,10 +169,19 @@
               </br>
 
               <paper-button
-                id="deleteUsers[[index]]"
-                raised on-tap="deleteUser">
-              Supprimmer utilisateur
+                id="blockUser[[index]]"
+                raised on-tap="blockUser"
+                >
+              Bloquer utilisateur
             </paper-button>
+
+            <paper-button
+              id="blockUser[[index]]"
+              raised on-tap="unblockUser"
+              style="background: red;"
+              >
+            Débloquer utilisateur
+          </paper-button>
 
 
 
@@ -220,6 +230,9 @@
           },
           doAdded:{
             type:Boolean
+          },
+          blockedUsers:{
+            type: Array
           }
         };
       }
@@ -227,6 +240,7 @@
       constructor(){
         super();
         this.datas = [];
+        this.blockedUsers = [];
         this.doAdded = true;
       }
 
@@ -313,17 +327,11 @@
           }
         });
 
-        console.log(this.datas);
-        for(var i = 0 ; i < this.datas.length ; i++){
-          console.log(this.datas[i].id);
-          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[i].id+"/releveUser")
-                      .on("child_removed", oldChildSnapshot=>{
-                        //if
-                          var datasUnReleveUser = oldChildSnapshot.val();
-                          console.log(datasUnReleveUser);
-                          console.log(checkReleve(i, datasUnReleveUser));
-                      });
-        }
+        firebase.app("iPreleveFirebase").database().ref("/blocked_user").on("child_added", snapshot =>{
+          this.push("blockedUsers", {id : snapshot.key, banned : true});
+        })
+
+
       }
 
       checkReleve(numUser, releve){
@@ -380,7 +388,7 @@
 
         //delete
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[userId].id+"/releveUser/"+wantedKey).remove(function(e){
-          console.log("Releves supprimmé");
+          console.log("Relevé supprimmé");
         });
 
         //reordonner relevés
@@ -406,26 +414,40 @@
         this.doAdded = true;
       }
 
-      deleteUser(item){
-        console.log(item);
+      blockUser(item){
+        this.eventBtn = item;
+        this.$.dialogBlock0.open();
+      }
+
+      unblockUser(item){
+        this.eventBtn = item;
+        this.$.dialogBlock1.open();
+      }
+
+      confirmBlockUser(){
+        var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("blockUser".length))].id;
+        firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(true);
+      }
+
+      confirmUnblockUser(){
+        var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("blockUser".length))].id;
+        firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(null);
+      }
+
+      checkIfUserBlocked(userId, t){
+        console.log(this.blockedUsers);
+        for(var i = 0 ; i < this.blockedUsers.length ; i++){
+          if(this.blockedUsers[i].id === userId){
+            return true;
+          }
+        }
+        return false;
       }
 
       _showError(error){
         console.log(error);
       }
 
-      getNbReleves(idUser, datas){
-        //console.log("releves" + idUser);
-        if(this.shadowRoot.querySelector("#releves" + idUser) != null){
-          return this.shadowRoot.querySelector("#releves" + idUser).data.length;
-        }else{
-          return "inconnu";
-        }
-
-        /*if(datas != null || datas != undefined){
-          return datas.length;
-        }*/
-      }
     }
 
     window.customElements.define(ViewAdminApp.is, ViewAdminApp);
