@@ -67,22 +67,14 @@
 
               <div class="card">
                 <div role="listbox">
-                  <!-- 1 -->
+
                   <paper-icon-item>
                     <iron-icon icon="social:person" slot="item-icon"></iron-icon>
                     <paper-item-body two-lines>
                       <div>[[aUser.mail]]</div>
-
-                      <!--Compter le nombre de relevés-->
                       <div secondary>[[aUser.releves.length]] relevés</div>
                     </paper-item-body>
                   </paper-icon-item>
-                <!-- /1 -->
-
-
-
-                <!-- 2 -->
-
 
                 <paper-item>
                   <paper-item-body two-lines>
@@ -149,39 +141,20 @@
                   </paper-item-body>
                 </paper-item>
 
-
-                      <!-- /2 -->
-
-
-
-
-                      <!-- 3 -->
-
-                       <!--Inclure fonction quand toggle-->
-                  <!--
-                <paper-toggle-button checked="[[aUser.isAdmin]]" toggles>Admin</paper-toggle-button>
-              -->
-
-                      <!-- /3 -->
-
-                      <!-- 4 -->
-
               </br>
 
-              <paper-button
+            <paper-button
                 id="blockUser[[index]]"
-                raised on-tap="blockUser"
-                >
+                raised on-tap="blockUser">
               Bloquer utilisateur
             </paper-button>
 
             <paper-button
-              id="blockUser[[index]]"
-              raised on-tap="unblockUser"
-              style="background: red;"
-              >
-            Débloquer utilisateur
-          </paper-button>
+                id="unblockUser[[index]]"
+                raised on-tap="unblockUser"
+                style="background: red;">
+              Débloquer utilisateur
+            </paper-button>
 
 
 
@@ -231,8 +204,12 @@
           doAdded:{
             type:Boolean
           },
+          doBanned:{
+            type:Boolean
+          },
           blockedUsers:{
-            type: Array
+            type: Object,
+            notify : true,
           }
         };
       }
@@ -240,29 +217,27 @@
       constructor(){
         super();
         this.datas = [];
-        this.blockedUsers = [];
+        this.blockedUsers = {};
         this.doAdded = true;
+        this.doBanned = true;
       }
 
       static get observers(){
-        //return["callbackFunction(path)"" ici path c'est admins.length]
         return[
           "_adminsChanged(admins.length)",
+          "getBanStatus(blockedUsers.*)"
         ]
       }
 
       ready(){
         super.ready();
-        var adminsArray = ["8h0ysggfujREgFntRco5bjEoWCi1"];
+        var adminsArray = ["UzfeYBkxW1bcxCcxwIRuSQTdVdD2"];
         this.adminsHandler(adminsArray);
 
-        //Creer un on child_added et un on child_removed dans le on child added du user.
-        //Ainsi on aura des observeurs sur chaque tableau de relevés (impératif pour mettre à jour l'affichage)
-        //ref on child_added
         firebase.app("iPreleveFirebase").database().ref("/releves").on("child_added", snapshot =>{
           if(this.doAdded){
             var datasUnUser = snapshot.val();
-            //Il faut créer un Array a partir de releveUser sinon pas de dom-repeat possible
+
             var releveUnUser = datasUnUser.releveUser;
             var arrayReleve = [];
             for(var item in releveUnUser){
@@ -297,7 +272,6 @@
               }
             });
 
-            //Faire le on child added et removed pour les relevés d'un user
             firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[numUser].id+"/releveUser").on("child_removed", oldChildSnapshot =>{
               if(this.doAdded){
                 var datasUnReleve = oldChildSnapshot.val();
@@ -317,10 +291,7 @@
 
         });
 
-        //ref on child_deleted
         firebase.app("iPreleveFirebase").database().ref("/releves").on("child_removed", oldChildSnapshot =>{
-          //splice sur this.datas[numUser];
-          //fait un off sur les child dded et removed des relevés
           if(this.doAdded){
             var datasUnUser = oldChildSnapshot.val();
             console.log(datasUnUser);
@@ -328,10 +299,12 @@
         });
 
         firebase.app("iPreleveFirebase").database().ref("/blocked_user").on("child_added", snapshot =>{
-          this.push("blockedUsers", {id : snapshot.key, banned : true});
-        })
+          this.set("blockedUsers."+snapshot.key, {id : snapshot.key, banned : snapshot.val()});
+        });
 
-
+        firebase.app("iPreleveFirebase").database().ref("/blocked_user").on("child_changed", snapshot =>{
+          this.set("blockedUsers."+snapshot.key, {id : snapshot.key, banned : snapshot.val()});
+        });
       }
 
       checkReleve(numUser, releve){
@@ -386,15 +359,12 @@
         var wantedKey = "n"+numReleve;
         var wantedDownloadUrl = this.datas[userId].releves[numReleve].URL_Image;
 
-        //delete
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[userId].id+"/releveUser/"+wantedKey).remove(function(e){
           console.log("Relevé supprimmé");
         });
 
-        //reordonner relevés
         this.updateDBKeyNames(userId, numReleve);
 
-        //delete dans stockage
         firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl).delete();
       }
 
@@ -425,23 +395,52 @@
       }
 
       confirmBlockUser(){
-        var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("blockUser".length))].id;
-        firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(true);
+          if(this.datas.length > 0){
+            this.doBanned = (this.shadowRoot.querySelector("#blockUser0") != undefined);
+            var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("blockUser".length))].id;
+            firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(true);
+            this.getBanStatus();
+            this.doBanned = true;
+        }
       }
 
       confirmUnblockUser(){
-        var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("blockUser".length))].id;
-        firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(null);
+          if(this.datas.length > 0){
+            this.doBanned = (this.shadowRoot.querySelector("#unblockUser0") != undefined);
+            var idUser = this.datas[parseInt(this.eventBtn.path[0].id.substring("unblockUser".length))].id;
+            firebase.app("iPreleveFirebase").database().ref("/blocked_user/"+idUser).set(false);
+            this.getBanStatus();
+            this.doBanned = true;
+        }
       }
 
-      checkIfUserBlocked(userId, t){
-        console.log(this.blockedUsers);
-        for(var i = 0 ; i < this.blockedUsers.length ; i++){
-          if(this.blockedUsers[i].id === userId){
-            return true;
+      getBanStatus(){
+        if(this.doBanned){
+          var index = 0;
+          for(var id in this.blockedUsers){
+            if(this.get("blockedUsers."+id+".banned") == true && id != this.user.uid){
+              this.shadowRoot.querySelector("#blockUser"+index).setAttribute("disabled",true);
+              this.shadowRoot.querySelector("#blockUser"+index).style.opacity = 0.2;
+              this.shadowRoot.querySelector("#unblockUser"+index).removeAttribute("disabled");
+              this.shadowRoot.querySelector("#unblockUser"+index).style.opacity = 1.0;
+            }else{
+              if(id != this.user.uid){
+                this.shadowRoot.querySelector("#blockUser"+index).removeAttribute("disabled");
+                this.shadowRoot.querySelector("#blockUser"+index).style.opacity = 1.0;
+                this.shadowRoot.querySelector("#unblockUser"+index).setAttribute("disabled",true);
+                this.shadowRoot.querySelector("#unblockUser"+index).style.opacity = 0.2;
+              }
+            }
+
+            if(id === this.user.uid){ //admin courant
+              this.shadowRoot.querySelector("#blockUser"+index).setAttribute("disabled",true);
+              this.shadowRoot.querySelector("#blockUser"+index).style.opacity = 0.2;
+              this.shadowRoot.querySelector("#unblockUser"+index).setAttribute("disabled",true);
+              this.shadowRoot.querySelector("#unblockUser"+index).style.opacity = 0.2;
+            }
+            index++;
           }
         }
-        return false;
       }
 
       _showError(error){

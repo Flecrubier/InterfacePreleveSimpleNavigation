@@ -217,7 +217,7 @@
         });
         this.addEventListener("authRegisterRequest", function(e){
           this.$.auth.createUserWithEmailAndPassword(e.detail.mail, e.detail.mdp)
-            .then(this.pushMailForUser.bind(this))
+            .then(this.pushDatasForUser.bind(this))
             .catch(function(error){
               console.log(error);
             });
@@ -282,8 +282,9 @@
         }
       }
 
-      pushMailForUser(user){
+      pushDatasForUser(user){
         firebase.app('iPreleveFirebase').database().ref("/releves/"+user.uid+"/mail").set(user.email);
+        firebase.app('iPreleveFirebase').database().ref("/blocked_user/"+user.uid).set(false);
       }
     }
 
