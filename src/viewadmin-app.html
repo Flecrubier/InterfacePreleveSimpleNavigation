@@ -14,6 +14,8 @@
 <link rel="import" href="../../bower_components/iron-icons/social-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/device-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="../../bower_components/google-map/google-map.html">
+<link rel="import" href="../../bower_components/google-map/google-map-marker.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewadmin-app">
@@ -61,6 +63,33 @@
       <div hidden$=[[!isAdmin]]>
 
         <h3>Interface administration</h3>
+
+        <!-- Carte de tous les relevés -->
+
+        <google-map
+          style="height:70vh"
+          api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
+          id="mapAdmin"
+          longitude="[[longMap]]"
+          latitude="[[latMap]]"
+          zoom="14"
+          disable-map-type-control
+          disable-street-view-control>
+
+          <template is="dom-repeat" items="[[allReleves]]">
+            <google-map-marker
+              longitude="[[getNumberFromString(item.Longitude)]]"
+              latitude="[[getNumberFromString(item.Latitude)]]">
+            <p><h4>[[item.espece]] [[item.famille]]</h4></p>
+            <img src="[[item.URL_Image]]">
+            </google-map-marker>
+          </template>
+
+        </google-map>
+
+
+        <!-- Liste des utilisateurs / relevés-->
+
         Liste des utilisateurs
 
         <template is="dom-repeat" items="[[datas]]" as="aUser">
@@ -210,12 +239,24 @@
           blockedUsers:{
             type: Object,
             notify : true,
+          },
+          allReleves:{
+            type: Array
+          },
+          longMap:{
+            type: Number,
+            value:2.4
+          },
+          latMap:{
+            type: Number,
+            value:46.4762253
           }
         };
       }
 
       constructor(){
         super();
+        this.allReleves = [];
         this.datas = [];
         this.blockedUsers = {};
         this.doAdded = true;
@@ -225,7 +266,8 @@
       static get observers(){
         return[
           "_adminsChanged(admins.length)",
-          "getBanStatus(blockedUsers.*)"
+          "getBanStatus(blockedUsers.*)",
+          "allRelevesChanged(allReleves.*)",
         ]
       }
 
@@ -269,6 +311,8 @@
                   Latitude : datasUnReleve.Latitude
                 };
                 this.push("datas."+numUser+".releves", unReleve);
+                //push dans le tableau de tous les relevés
+                this.push("allReleves", unReleve);
               }
             });
 
@@ -285,6 +329,12 @@
                 var index = this.checkReleve(numUser, unReleve);
                 if(index > -1){
                   this.splice("datas."+numUser+".releves", index, 1);
+                }
+
+                //Splice de allReleves
+                var indexAllReleves = this.checkReleveAllReleve(unReleve);
+                if(indexAllReleves > -1){
+                  this.splice("allReleves", index, 1);
                 }
               }
             });
@@ -318,6 +368,39 @@
             }
         }
         return -1;
+      }
+
+      checkReleveAllReleve(releve){
+        for(var i = 0; i < this.allReleves.length ; i++){
+          if ( (this.allReleves[i].Longitude === releve.Longitude) &&
+            (this.allReleves[i].Latitude === releve.Latitude) &&
+            (this.allReleves[i].espece === releve.espece) &&
+            (this.allReleves[i].famille === releve.famille) &&
+            (this.allReleves[i].URL_Image === releve.URL_Image) ){
+              return i;
+            }
+        }
+        return -1;
+      }
+
+      getNumberFromString(string){
+        return parseFloat(string);
+      }
+
+      allRelevesChanged(){
+        if(this.allReleves.length > 0){
+          var i = 0;
+          var moyLong = this.allReleves[0].Longitude;
+          var moyLat = this.allReleves[0].Latitude;
+          for(i = 1 ; i < this.allReleves.length ; i++){
+            moyLong += this.allReleves[i].Longitude;
+            moyLat += this.allReleves[i].Latitude;
+          }
+          moyLong /= this.allReleves.length;
+          moyLat /= this.allReleves.length;
+          this.longMap = moyLong;
+          this.latMap = moyLat;
+        }
       }
 
       adminsHandler(admins){
