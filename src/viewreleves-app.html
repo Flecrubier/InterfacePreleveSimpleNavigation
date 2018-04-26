@@ -36,14 +36,7 @@
     id="dialogUpload0"
     title="Erreur d'upload"
     confirm-button="OK">
-    Vous devez choisir une image
-  </paper-alert-dialog>
-
-  <paper-alert-dialog
-    id="dialogUpload1"
-    title="Erreur d'upload"
-    confirm-button="OK">
-    Vous ne pouvez choisir qu'un seul fichier
+    Vous ne pouvez choisir que jusqu'a 3 images
   </paper-alert-dialog>
 
   <paper-alert-dialog
@@ -58,9 +51,9 @@
 <!--Fin creation dialog-->
 
     <template is="dom-if" if="[[user]]">
-      <geo-location latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
+      <geo-location watch-pos latitude="{{latitude}}" longitude="{{longitude}}"></geo-location>
 
-      <h4>S'il n'y a pas de valeur pour la latitude/longitude veuillez actualiser dans quelques instants</h4>
+      <h4>S'il n'y a pas de valeur pour la latitude/longitude veuillez actualiser dans quelques instants ou remplir le code postal</h4>
       <div>Latitude : [[latitude]]</div>
       <div>Longitude : [[longitude]]</div>
 
@@ -126,8 +119,9 @@
       <h5>Ajouter un relevé :</h5>
       <paper-input style="width:20em" label="Nom de l'espèce" value="{{specie}}" maxlength="30"></paper-input>
       <paper-input style="width:20em" label="Nom de la famille" value="{{family}}" maxlength="30"></paper-input>
+      <paper-input style="width:6em" id="CPInput" label="Code postal" value="{{codepostal}}" maxlength="5" disabled></paper-input>
 
-      <input style="width:20em" type="file" id="file-uploader" accept="image/*" on-change="onFileUpload"></input>
+      <paper-input style="width:20em" label="Images (3 max)" type="file" id="file-uploader" accept="image/*" multiple></paper-input>
 
       <firebase-storage-multiupload
         app-name="iPreleveFirebase"
@@ -137,8 +131,7 @@
         files="[[files]]"
         upload-tasks="{{uploadTasks}}"
         on-error="_showError"
-        force-unique
-        auto>
+        force-unique>
       </firebase-storage-multiupload>
 
       <template is="dom-repeat" items="[[uploadTasks]]">
@@ -193,8 +186,26 @@
           },
           doAdded:{
             type:Boolean
+          },
+          latitude:{
+            type:Number,
+          },
+          longitude:{
+            type:Number,
+          },
+          disabledCPInput:{
+            type:Boolean,
+          },
+          CPInputReady:{
+            type:Boolean,
           }
         }
+      }
+
+      static get observers(){
+        return[
+          "geoValueChanged(latitude, longitude, CPInputReady)"
+        ];
       }
 
       constructor(){
@@ -202,12 +213,15 @@
         this.nbTasks=0;
         this.datas=[];
         this.doAdded = true;
+        this.disabledCPInput = true;
+        this.CPInputReady = false;
       }
 
       ready(){
         super.ready();
 
-        //Réinitialiser array avec un évènement
+        this.CPInputReady = true;
+        console.log("ready button ", this.shadowRoot.querySelector("#CPInput"));
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
                       .on("child_added",snapshot =>{
@@ -241,6 +255,31 @@
                           }
                         }
           });
+
+          this.addEventListener("change", function(e){
+            if(e.path[0].id == "file-uploader"){
+              if(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length > 3){
+                this.$.dialogUpload0.open();
+                this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.value = ""; //Clean FileList
+                console.log(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length);
+              }else if(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length == 0){
+                console.log("Aucun fichier sélectionné");
+              }
+          }
+        });
+      }
+
+      geoValueChanged(latitude, longitude){
+        console.log(this.shadowRoot.querySelector("#CPInput"));
+        console.log(this.CPInputReady);
+        if(this.CPInputReady == true){
+          console.log("Lat : ", latitude, " |Long : ", longitude);
+          if(latitude == null && longitude == null){
+            this.shadowRoot.querySelector("#CPInput").setAttribute("disabled", true);
+          }else{
+            this.shadowRoot.querySelector("#CPInput").removeAttribute("disabled");
+          }
+        }
       }
 
       checkReleve(releve){
