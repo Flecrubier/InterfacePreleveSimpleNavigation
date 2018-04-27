@@ -16,6 +16,7 @@
     </style>
 
     <template is="dom-if" if="[[user]]">
+      <!--
       <firebase-query
         app-name="iPreleveFirebase"
         id="queryG"
@@ -23,6 +24,7 @@
         path="/releves/[[user.uid]]/releveUser"
         data="{{dataG}}">
       </firebase-query>
+    -->
 
       <google-map
         style="height:90vh"
@@ -34,7 +36,7 @@
         disable-map-type-control
         disable-street-view-control><!--Obligé de zoom="6" car fit-to-markers ne semble pas fonctionner-->
 
-        <template is="dom-repeat" items="{{dataG}}">
+        <template is="dom-repeat" items="[[dataG]]">
           <google-map-marker
             longitude="[[getNumberFromString(item.Longitude)]]"
             latitude="[[getNumberFromString(item.Latitude)]]">
@@ -68,8 +70,10 @@
           latMap:{
             type: Number,
             value:46.4762253
+          },
+          doAdded:{
+            type: Boolean
           }
-
         }
       }
 
@@ -80,8 +84,58 @@
         ]
       }
 
+      constructor(){
+        super();
+        this.dataG = [];
+        this.doAdded = true;
+      }
+
       ready(){
         super.ready();
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser").on("child_added", snapshot =>{
+          if(this.doAdded){
+            var datasUnReleve = snapshot.val();
+            var unReleve ={
+              espece : datasUnReleve.espece,
+              famille : datasUnReleve.famille,
+              Longitude : datasUnReleve.Longitude,
+              Latitude : datasUnReleve.Latitude,
+              URL_Image : datasUnReleve.URL_Image
+            };
+            this.push("datasG", unReleve);
+          }
+        });
+
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser").on("child_removed", oldChildSnapshot =>{
+          if(this.doAdded){
+            var datasUnReleve = oldChildSnapshot.val();
+            var unReleve = {
+              espece : datasUnReleve.espece,
+              famille : datasUnReleve.famille,
+              URL_Image : datasUnReleve.URL_Image,
+              Longitude : datasUnReleve.Longitude,
+              Latitude : datasUnReleve.Latitude
+            };
+            var index = this.checkReleve(unReleve);
+            if(index > -1){
+                this.splice("datasG", index, 1);
+            }
+          }
+        });
+      }
+
+      checkReleve(releve){
+        for(var i = 0 ; i < this.datasG.length ; i++){
+          if ( (this.datas[i].Longitude === releve.Longitude) &&
+            (this.datas[i].Latitude === releve.Latitude) &&
+            (this.datas[i].espece === releve.espece) &&
+            (this.datas[i].famille === releve.famille) &&
+            (this.datas[i].URL_Image === releve.URL_Image) ){
+              return i;
+            }
+        }
+        return -1;
       }
 
       _dataGChanged(changeLength){

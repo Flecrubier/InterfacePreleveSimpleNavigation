@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
@@ -198,7 +198,7 @@
           },
           CPInputReady:{
             type:Boolean,
-          }
+          },
         }
       }
 
@@ -219,9 +219,6 @@
 
       ready(){
         super.ready();
-
-        this.CPInputReady = true;
-        console.log("ready button ", this.shadowRoot.querySelector("#CPInput"));
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
                       .on("child_added",snapshot =>{
@@ -271,8 +268,9 @@
 
       geoValueChanged(latitude, longitude){
         console.log(this.shadowRoot.querySelector("#CPInput"));
+        if(this.shadowRoot.querySelector("#CPInput") != null){this.CPInputReady = true;}
         console.log(this.CPInputReady);
-        if(this.CPInputReady == true){
+        if(this.CPInputReady){
           console.log("Lat : ", latitude, " |Long : ", longitude);
           if(latitude == null && longitude == null){
             this.shadowRoot.querySelector("#CPInput").setAttribute("disabled", true);
