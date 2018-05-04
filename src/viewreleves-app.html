@@ -219,6 +219,7 @@
 
       ready(){
         super.ready();
+        this.createMutationObserver();
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
                       .on("child_added",snapshot =>{
@@ -254,6 +255,7 @@
           });
 
           this.addEventListener("change", function(e){
+            //console.log(e);
             if(e.path[0].id == "file-uploader"){
               if(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length > 3){
                 this.$.dialogUpload0.open();
@@ -266,16 +268,35 @@
         });
       }
 
+      createMutationObserver(){
+        var node = this; //Node observé
+
+        var config = {childList : true, subtree : true}; //Quelle mutation observer
+
+        var observer = new MutationObserver(function(mutation){
+          //console.log(mutation[0].addedNodes);
+          for(var node of mutation[0].addedNodes){
+            if(node.id != undefined && node.id != null){
+                if(node.id === "CPInput"){
+                  console.log("il est la uesh");
+                  this.CPInputReady = true;
+                  this.geoValueChanged(this.latitude, this.longitude);
+                }
+            }
+          }
+        }.bind(this));
+
+        //On observe le node
+        observer.observe(this.shadowRoot, config);
+      }
+
       geoValueChanged(latitude, longitude){
-        console.log(this.shadowRoot.querySelector("#CPInput"));
-        if(this.shadowRoot.querySelector("#CPInput") != null){this.CPInputReady = true;}
-        console.log(this.CPInputReady);
         if(this.CPInputReady){
           console.log("Lat : ", latitude, " |Long : ", longitude);
           if(latitude == null && longitude == null){
-            this.shadowRoot.querySelector("#CPInput").setAttribute("disabled", true);
-          }else{
             this.shadowRoot.querySelector("#CPInput").removeAttribute("disabled");
+          }else{
+            this.shadowRoot.querySelector("#CPInput").setAttribute("disabled", true);
           }
         }
       }
