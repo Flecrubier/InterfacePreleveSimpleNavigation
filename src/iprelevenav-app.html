@@ -215,7 +215,7 @@
         //http://localhost:8081/src/specieList/listSpace
         // ./src/specieList/listSpace
 
-        this.readFile("http://localhost:8081/src/specieList/listSpace");
+        this.readFile("./src/specieList/listSpace");
 
         this.addEventListener("authLoginRequest", function(e){
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
