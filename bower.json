@@ -23,7 +23,10 @@
     "geo-location": "^2.0.2",
     "paper-alert-dialog": "^2.0.1",
     "google-map": "^2.0.4",
-    "paper-toggle-button": "^2.1.1"
+    "paper-toggle-button": "^2.1.1",
+    "paper-dropdown-menu": "^2.1.0",
+    "paper-listbox": "^2.1.1",
+    "web-animations-js": "^2.3.1"
   },
   "resolutions": {
     "polymer": "^2.0.0"

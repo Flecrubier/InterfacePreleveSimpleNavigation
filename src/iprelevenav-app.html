@@ -204,12 +204,19 @@
           routeData: Object,
           subroute: Object,
           rootPath: String,
+          speciesArray : Array,
         };
       }
 
 
       ready(){
         super.ready();
+
+        //http://localhost:8081/src/specieList/listSpace
+        // ./src/specieList/listSpace
+
+        this.readFile("http://localhost:8081/src/specieList/listSpace");
+
         this.addEventListener("authLoginRequest", function(e){
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
           .then(function(ee){
@@ -261,10 +268,39 @@
         });
       }
 
+
+      readFile(fileName){
+        var xmlRequest = new XMLHttpRequest();
+        xmlRequest.open("GET", fileName, true);
+        xmlRequest.onreadystatechange = function(){
+          if(xmlRequest.readyState == 4){
+            if(xmlRequest.status == 200 || xmlRequest.status == 0){
+              var text = xmlRequest.responseText;
+              //console.log(text);
+              //console.log(text.split("\n"));
+              this.speciesArray = text.split("\n");
+            }
+          }
+        }.bind(this);
+        xmlRequest.send(null);
+      }
+
+
       static get observers() {
         return [
           '_routePageChanged(routeData.page)',
+          'speciesArrayChange(speciesArray.*)',
         ];
+      }
+
+      speciesArrayChange(){
+        firebase.app("iPreleveFirebase").database().ref("/species/").remove(function(e){
+          var tempArray = this.speciesArray;
+          tempArray.splice(this.speciesArray.length - 1, 1); //On retire la dernière case qui casse tout
+          for(var specie of tempArray){
+            firebase.app("iPreleveFirebase").database().ref("/species/"+specie).set(specie);
+          }
+        }.bind(this));
       }
 
       _routePageChanged(page) {

@@ -14,6 +14,8 @@
 <link rel="import" href="../../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item-body.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../../bower_components/iron-icons/device-icons.html">
 <link rel="import" href="../../bower_components/iron-icons/image-icons.html">
@@ -116,48 +118,25 @@
       </paper-collapse-group>
 
       <br/>
-      <h5>Ajouter un relevé :</h5>
+      <h5>Ajouter un relevé : (Sélectionner dans la liste si-dessous, mettre plus de 3 lettres pour préciser recherche)</h5>
       <paper-input style="width:20em" label="Nom de l'espèce" value="{{specie}}" maxlength="30"></paper-input>
-      <paper-input style="width:20em" label="Nom de la famille" value="{{family}}" maxlength="30"></paper-input>
+
+      <div>
+        <paper-dropdown-menu>
+          <paper-listbox slot="dropdown-content">
+            <template id="matchSpecies" is="dom-repeat" items="[[allSpecies]]" filter="doMatch">
+              <paper-item>[[item]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <span>[[numMatch]] espèces correspondent</span>
+      </div>
+
       <paper-input style="width:6em" id="CPInput" label="Code postal" value="{{codepostal}}" maxlength="5" disabled></paper-input>
 
       <paper-input style="width:20em" label="Images (3 max)" type="file" id="file-uploader" accept="image/*" multiple></paper-input>
 
-      <firebase-storage-multiupload
-        app-name="iPreleveFirebase"
-        id="fs"
-        path="/relevesImages/[[user.uid]]"
-        ref="{{fsRef}}"
-        files="[[files]]"
-        upload-tasks="{{uploadTasks}}"
-        on-error="_showError"
-        force-unique>
-      </firebase-storage-multiupload>
-
-      <template is="dom-repeat" items="[[uploadTasks]]">
-        <firebase-storage-upload-task
-          app-name="iPreleveFirebase"
-          task="[[item]]"
-          id="ut-[[index]]"
-          bytes-transferred="{{item.bytesTransferred}}"
-          total-bytes="{{item.totalBytes}}"
-          state="{{item.state}}"
-          download-url="{{item.downloadUrl}}"
-          metadata="{{item.metadata}}"
-          path="{{item.path}}">
-        </firebase-storage-upload-task>
-
-        Etat : [[item.state]] <br>
-
-        <template is="dom-if" if="[[!isEqual(item.state, 'success')]]">
-          <paper-progress
-            value="{{item.bytesTransferred}}"
-            min="0"
-            max="{{item.totalBytes}}">
-          </paper-progress>
-        </template>
-
-      </template>
+      <paper-button raised on-tap="addData">Ajouter un relevé</paper-button>
 
       <paper-button id="btnAddData" raised on-tap="_addData" style="visibility:hidden">Ajouter</paper-button>
 
@@ -199,19 +178,36 @@
           CPInputReady:{
             type:Boolean,
           },
+          allSpecies:{
+            type:Array,
+          },
+          specie:{
+            type:String,
+            observer:"specieChanged"
+          },
+          numMatch:{
+            type:Number
+          },
+          downloadURLs:{
+            type:Array,
+          }
         }
       }
 
       static get observers(){
         return[
-          "geoValueChanged(latitude, longitude, CPInputReady)"
+          "geoValueChanged(latitude, longitude, CPInputReady)",
+          "disp(downloadURLs.length)"
         ];
       }
 
       constructor(){
         super();
         this.nbTasks=0;
+        this.numMatch=0;
         this.datas=[];
+        this.allSpecies=[];
+        this.downloadURLs=[];
         this.doAdded = true;
         this.disabledCPInput = true;
         this.CPInputReady = false;
@@ -254,8 +250,13 @@
                         }
           });
 
+          firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
+            if(this.doAdded){
+              this.push("allSpecies", snapshot.key);
+            }
+          });
+
           this.addEventListener("change", function(e){
-            //console.log(e);
             if(e.path[0].id == "file-uploader"){
               if(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length > 3){
                 this.$.dialogUpload0.open();
@@ -263,22 +264,29 @@
                 console.log(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length);
               }else if(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length == 0){
                 console.log("Aucun fichier sélectionné");
+              }else{
+                //bon nombre de fichier
+                this.downloadURLs = [];
+                for(var i = 0 ; i < this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files.length ; i++){
+                  console.log(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files[i]);
+                  firebase.app("iPreleveFirebase").storage().ref("/img").put(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files[i]).then(snapshot=>{
+                    console.log(snapshot.downloadURL);
+                    this.push("downloadURLs", snapshot.downloadURL);
+                  });
+                }
               }
           }
         });
+
       }
 
       createMutationObserver(){
-        var node = this; //Node observé
-
         var config = {childList : true, subtree : true}; //Quelle mutation observer
 
         var observer = new MutationObserver(function(mutation){
-          //console.log(mutation[0].addedNodes);
           for(var node of mutation[0].addedNodes){
             if(node.id != undefined && node.id != null){
                 if(node.id === "CPInput"){
-                  console.log("il est la uesh");
                   this.CPInputReady = true;
                   this.geoValueChanged(this.latitude, this.longitude);
                 }
@@ -292,13 +300,34 @@
 
       geoValueChanged(latitude, longitude){
         if(this.CPInputReady){
-          console.log("Lat : ", latitude, " |Long : ", longitude);
+          //console.log("Lat : ", latitude, " |Long : ", longitude);
           if(latitude == null && longitude == null){
             this.shadowRoot.querySelector("#CPInput").removeAttribute("disabled");
           }else{
             this.shadowRoot.querySelector("#CPInput").setAttribute("disabled", true);
           }
         }
+      }
+
+      doMatch(item, index){
+        if(this.specie){
+          if(this.specie.length > 3){
+            var match = item.toLowerCase().includes(this.specie.toLowerCase());
+            if(match){
+              this.numMatch++;
+            }
+            return match;
+          }
+          this.numMatch++;
+          return true;
+        }
+        this.numMatch++;
+        return true;
+      }
+
+      specieChanged(){
+        this.numMatch = 0;
+        this.shadowRoot.querySelector("#matchSpecies").render();
       }
 
       checkReleve(releve){
@@ -312,6 +341,10 @@
             }
         }
         return -1;
+      }
+
+      disp(thing){
+        console.log(this.downloadURLs);
       }
 
       upload(){
@@ -341,6 +374,10 @@
       }
 
       _addData(){
+        //Check si nombre de downloadURLs correspond a nombre de files dans l'file-uploader
+        //sinon faut attendre ( avec une dialog )
+
+
         //Retrouver nombre de relevés puis faire un ref.child("reeleve"+nbReleve+1).set({donnée});
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+this.datas.length).set({
           espece : this.specie,
