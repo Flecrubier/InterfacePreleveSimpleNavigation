@@ -52,6 +52,12 @@
       <h4 style="color:red">Veuillez vous connecter afin de consulter vos relevés</h4>
     </template>
 
+    <firebase-auth
+      app-name="iPreleveFirebase"
+      id="auth"
+      provider="google">
+    </firebase-auth>
+
   </template>
 
   <script>
@@ -73,6 +79,9 @@
           },
           doAdded:{
             type: Boolean
+          },
+          userId:{
+            type:String
           }
         }
       }
@@ -93,6 +102,22 @@
       ready(){
         super.ready();
 
+        this.$.auth.addEventListener("signed-in-changed",function(e){
+          if(this.user){
+            //Connexion
+            this.createOns();
+          }else{
+            //Déconnexion
+            this.doOffs();
+          }
+        }.bind(this));
+
+
+      }
+
+      createOns(){
+        this.userId = this.user.uid;
+
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser").on("child_added", snapshot =>{
           if(this.doAdded){
             var datasUnReleve = snapshot.val();
@@ -103,7 +128,7 @@
               Latitude : datasUnReleve.Latitude,
               URL_Image : datasUnReleve.URL_Image
             };
-            this.push("datasG", unReleve);
+            this.push("dataG", unReleve);
           }
         });
 
@@ -119,14 +144,20 @@
             };
             var index = this.checkReleve(unReleve);
             if(index > -1){
-                this.splice("datasG", index, 1);
+                this.splice("dataG", index, 1);
             }
           }
         });
       }
 
+      doOffs(){
+        this.splice("dataG", 0, this.dataG.length);
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
+        this.userId = "";
+      }
+
       checkReleve(releve){
-        for(var i = 0 ; i < this.datasG.length ; i++){
+        for(var i = 0 ; i < this.dataG.length ; i++){
           if ( (this.datas[i].Longitude === releve.Longitude) &&
             (this.datas[i].Latitude === releve.Latitude) &&
             (this.datas[i].espece === releve.espece) &&
@@ -139,7 +170,7 @@
       }
 
       _dataGChanged(changeLength){
-        //console.log(dataG);
+        console.log(this.dataG);
         if(this.dataG.length > 0){
           var i = 0;
           var moyLong = this.dataG[0].Longitude;

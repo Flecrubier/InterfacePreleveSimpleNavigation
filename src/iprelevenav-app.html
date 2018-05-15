@@ -227,7 +227,8 @@
         });
         this.addEventListener("authLogoutRequest", function(e){
           this.$.auth.signOut();
-          location.reload();
+          //location.reload();
+          //Fire un event refreshArrays vers les child pour rafraichir les données.
         });
         this.addEventListener("authRegisterRequest", function(e){
           this.$.auth.createUserWithEmailAndPassword(e.detail.mail, e.detail.mdp)
@@ -265,25 +266,8 @@
               this.$.dialogAuth4.open();
           }
         });
-      }
 
-      /*
-      readFile(fileName){
-        var xmlRequest = new XMLHttpRequest();
-        xmlRequest.open("GET", fileName, true);
-        xmlRequest.onreadystatechange = function(){
-          if(xmlRequest.readyState == 4){
-            if(xmlRequest.status == 200 || xmlRequest.status == 0){
-              var text = xmlRequest.responseText;
-              //console.log(text);
-              //console.log(text.split("\n"));
-              this.speciesArray = text.split("\n");
-            }
-          }
-        }.bind(this);
-        xmlRequest.send(null);
       }
-      */
 
       static get observers() {
         return [
@@ -292,17 +276,6 @@
         ];
       }
 
-/*
-      speciesArrayChange(){
-        firebase.app("iPreleveFirebase").database().ref("/species/").remove(function(e){
-          var tempArray = this.speciesArray;
-          tempArray.splice(this.speciesArray.length - 1, 1); //On retire la dernière case qui casse tout
-          for(var specie of tempArray){
-            firebase.app("iPreleveFirebase").database().ref("/species/"+specie).set(specie);
-          }
-        }.bind(this));
-      }
-*/
       _routePageChanged(page) {
         this.page = page || 'viewauth';
 
@@ -334,6 +307,7 @@
         firebase.app('iPreleveFirebase').database().ref("/releves/"+user.uid+"/mail").set(user.email);
         firebase.app('iPreleveFirebase').database().ref("/blocked_user/"+user.uid).set(false);
       }
+
     }
 
     window.customElements.define(IPreleveNavApp.is, IPreleveNavApp);

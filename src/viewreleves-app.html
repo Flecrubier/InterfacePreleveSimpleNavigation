@@ -1,5 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-storage-multiupload.html">
@@ -49,6 +50,12 @@
     on-confirm="confirmDelete">
     Voulez vous vraiment supprimmer ce relevé ?
   </paper-alert-dialog>
+
+  <firebase-auth
+    app-name="iPreleveFirebase"
+    id="auth"
+    provider="google">
+  </firebase-auth>
 
 <!--Fin creation dialog-->
 
@@ -172,9 +179,6 @@
           longitude:{
             type:Number,
           },
-          disabledCPInput:{
-            type:Boolean,
-          },
           CPInputReady:{
             type:Boolean,
           },
@@ -193,6 +197,9 @@
           },
           filesInput:{
             type:FileList
+          },
+          userId:{
+            type:String
           }
         }
       }
@@ -212,13 +219,94 @@
         this.allSpecies=[];
         this.downloadURLs=[];
         this.doAdded = true;
-        this.disabledCPInput = true;
         this.CPInputReady = false;
+        this.userId="";
       }
 
       ready(){
         super.ready();
         this.createMutationObserver();
+
+        //Pour les on avec le user on peut faire une fonction connect et disconnect qui les gère et ensuite utiliser
+        //les eventListener sur onConnect et onDisconnect (pas sur des noms) pour les appeler
+        /*
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
+                      .on("child_added",snapshot =>{
+                        if(this.doAdded){
+                          var datasUnReleve = snapshot.val();
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            famille : datasUnReleve.famille,
+                            URL_Image : datasUnReleve.URL_Image,
+                            Longitude : datasUnReleve.Longitude,
+                            Latitude : datasUnReleve.Latitude
+                          };
+                          this.push("datas", unReleve);
+                        }
+          });
+
+          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
+                      .on("child_removed", oldChildSnapshot=>{
+                        if(this.doAdded){
+                          var datasUnReleve = oldChildSnapshot.val();
+                          var unReleve = {
+                            espece : datasUnReleve.espece,
+                            famille : datasUnReleve.famille,
+                            URL_Image : datasUnReleve.URL_Image,
+                            Longitude : datasUnReleve.Longitude,
+                            Latitude : datasUnReleve.Latitude
+                          };
+                          var index = this.checkReleve(unReleve);
+                          if(index > -1){
+                              this.splice("datas", index, 1);
+                          }
+                        }
+          });
+*/
+          firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
+            if(this.doAdded){
+              this.push("allSpecies", snapshot.key);
+            }
+          });
+
+          this.addEventListener("change", function(e){
+            if(e.path[0].id == "file-uploader"){
+              this.filesInput = this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files
+              if(this.filesInput.length > 3){
+                this.$.dialogUpload0.open();
+                this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.value = ""; //Clean FileList
+              }else{
+                //bon nombre de fichier
+
+                this.downloadURLs = [];
+                for(var i = 0 ; i < this.filesInput.length ; i++){
+                  var uniqueID = Date.now().toString() + "-" + this.filesInput[i].name;
+                  firebase.app("iPreleveFirebase").storage().ref("/relevesImages/"+this.user.uid+"/"+uniqueID).put(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files[i]).then(snapshot=>{
+                    this.push("downloadURLs", snapshot.downloadURL);
+                    if(this.downloadURLs.length == this.filesInput.length){
+                      console.log("OUI MONSIEUR BOUNGALE");
+                      //Paper toast pour dire que c'est fini
+                    }
+                  });
+                }
+              }
+          }
+        });
+
+          this.$.auth.addEventListener("signed-in-changed",function(e){
+            if(this.user){
+              //Connexion
+              this.createOns();
+            }else{
+              //Déconnexion
+              this.doOffs();
+            }
+          }.bind(this));
+
+      }
+
+      createOns(){
+        this.userId = this.user.uid;
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
                       .on("child_added",snapshot =>{
@@ -252,41 +340,12 @@
                           }
                         }
           });
+      }
 
-          firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
-            if(this.doAdded){
-              this.push("allSpecies", snapshot.key);
-            }
-          });
-
-          this.addEventListener("change", function(e){
-            if(e.path[0].id == "file-uploader"){
-              this.filesInput = this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files
-              if(this.filesInput.length > 3){
-                this.$.dialogUpload0.open();
-                this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.value = ""; //Clean FileList
-              }else{
-                //bon nombre de fichier
-
-                this.downloadURLs = [];
-                for(var i = 0 ; i < this.filesInput.length ; i++){
-                  var uniqueID = Date.now().toString() + "-" + this.filesInput[i].name;
-                  firebase.app("iPreleveFirebase").storage().ref("/relevesImages/"+this.user.uid+"/"+uniqueID).put(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files[i]).then(snapshot=>{
-                    this.push("downloadURLs", snapshot.downloadURL);
-                    if(this.downloadURLs.length == this.filesInput.length){
-                      console.log("OUI MONSIEUR BOUNGALE");
-                      //Paper toast pour dire que c'est fini
-                    }
-                  });
-                }
-              }
-          }
-        });
-
-          this.addEventListener("iron-select", function(e){
-            console.log(e);
-          });
-
+      doOffs(){
+        this.splice("datas", 0, this.datas.length);
+        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.userId+"/releveUser").off();
+        this.userId = "";
       }
 
       createMutationObserver(){

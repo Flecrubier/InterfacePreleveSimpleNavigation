@@ -3,6 +3,8 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-alert-dialog/paper-alert-dialog.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-app.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewauth-app">
@@ -34,6 +36,13 @@
       }
     </style>
 
+    <firebase-auth
+    app-name="iPreleveFirebase"
+    id="auth"
+      user="{{user}}"
+      provider="google">
+    </firebase-auth>
+
     <div class ="centerAuth">
       <div class="card">
         <h3>Connexion</h3>
@@ -59,6 +68,26 @@
   <script>
     class ViewAuthApp extends Polymer.Element {
       static get is() { return 'viewauth-app'; }
+
+      ready(){
+        super.ready();
+
+/*
+        this.$.auth.addEventListener("signed-in-changed", function(e){
+          console.log(e);
+        });
+        */
+
+        /*
+        this.$.auth.addEventListener("user-changed", function(e){
+          console.log(e);
+          if(this.user){
+            console.log(this.user);
+          }else{
+            console.log("déco");
+          }
+        });*/
+      }
 
       _login(){
         if(!this.mail || !this.mdp){
