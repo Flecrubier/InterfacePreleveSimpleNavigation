@@ -204,7 +204,6 @@
           routeData: Object,
           subroute: Object,
           rootPath: String,
-          speciesArray : Array,
         };
       }
 
@@ -215,7 +214,7 @@
         //http://localhost:8081/src/specieList/listSpace
         // ./src/specieList/listSpace
 
-        this.readFile("./src/specieList/listSpace");
+        //this.readFile("./src/specieList/listSpace");
 
         this.addEventListener("authLoginRequest", function(e){
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
@@ -268,7 +267,7 @@
         });
       }
 
-
+      /*
       readFile(fileName){
         var xmlRequest = new XMLHttpRequest();
         xmlRequest.open("GET", fileName, true);
@@ -284,15 +283,16 @@
         }.bind(this);
         xmlRequest.send(null);
       }
-
+      */
 
       static get observers() {
         return [
           '_routePageChanged(routeData.page)',
-          'speciesArrayChange(speciesArray.*)',
+          //'speciesArrayChange(speciesArray.*)',
         ];
       }
 
+/*
       speciesArrayChange(){
         firebase.app("iPreleveFirebase").database().ref("/species/").remove(function(e){
           var tempArray = this.speciesArray;
@@ -302,7 +302,7 @@
           }
         }.bind(this));
       }
-
+*/
       _routePageChanged(page) {
         this.page = page || 'viewauth';
 

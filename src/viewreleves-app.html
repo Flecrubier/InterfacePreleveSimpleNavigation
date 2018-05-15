@@ -265,8 +265,6 @@
               if(this.filesInput.length > 3){
                 this.$.dialogUpload0.open();
                 this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.value = ""; //Clean FileList
-              }else if(this.filesInput.length == 0){
-
               }else{
                 //bon nombre de fichier
 
@@ -276,14 +274,18 @@
                   firebase.app("iPreleveFirebase").storage().ref("/relevesImages/"+this.user.uid+"/"+uniqueID).put(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files[i]).then(snapshot=>{
                     this.push("downloadURLs", snapshot.downloadURL);
                     if(this.downloadURLs.length == this.filesInput.length){
-                      //Ouvrir une popur pour dire que l'upload est fini
                       console.log("OUI MONSIEUR BOUNGALE");
+                      //Paper toast pour dire que c'est fini
                     }
                   });
                 }
               }
           }
         });
+
+          this.addEventListener("iron-select", function(e){
+            console.log(e);
+          });
 
       }
 
@@ -316,7 +318,7 @@
         }
       }
 
-      doMatch(item, index){
+      doMatch(item){
         if(this.specie){
           if(this.specie.length > 3){
             var match = item.toLowerCase().includes(this.specie.toLowerCase());
@@ -359,6 +361,7 @@
       }
 
       addData(){
+        //Désactiver le bouton pendant le truc pour éviter le spam
         //Check si nombre de downloadURLs correspond a nombre de files dans l'file-uploader
         console.log(this.downloadURLs.length);
         console.log(this.filesInput.length);
@@ -381,6 +384,8 @@
         this.shadowRoot.querySelector("#file-uploader").style.visibility = "visible";
         this.shadowRoot.querySelector("#btnAddData").style.visibility = "hidden";
         */
+
+        //Réactiver bouton
       }
 
       getIndex(index){
