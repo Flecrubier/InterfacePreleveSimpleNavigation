@@ -3,6 +3,7 @@
 <link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
 <link rel="import" href="../../bower_components/google-map/google-map.html">
 <link rel="import" href="../../bower_components/google-map/google-map-marker.html">
+<link rel="import" href="../../bower_components/geo-codec/geo-codec.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewgmap-app">
@@ -17,22 +18,23 @@
 
     <template is="dom-if" if="[[user]]">
 
+      <geo-codec id="codec" api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"></geo-codec>
+
       <google-map
         style="height:90vh"
         api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
         id="map"
         longitude="{{longMap}}"
         latitude="{{latMap}}"
-        zoom="14"
+        zoom="10"
         disable-map-type-control
         disable-street-view-control><!--Obligé de zoom="6" car fit-to-markers ne semble pas fonctionner-->
 
-        <template is="dom-repeat" items="[[dataG]]" mutable-data>
+        <template is="dom-repeat" items="[[dataG]]" mutable-data id="markers">
           <google-map-marker
-            longitude="[[getNumberFromString(item.Longitude)]]"
-            latitude="[[getNumberFromString(item.Latitude)]]">
+            longitude="[[getLongitude(item)]]"
+            latitude="[[getLatitude(item)]]">
             <p><h3>[[item.espece]]</h3></p>
-            <img src="[[item.URL_Image]]">
           </google-map-marker>
         </template>
       </google-map>
@@ -73,6 +75,9 @@
           },
           userId:{
             type:String
+          },
+          codecReady:{
+            type:Boolean
           }
         }
       }
@@ -88,10 +93,13 @@
         super();
         this.dataG = [];
         this.doAdded = true;
+        this.codecReady = false;
       }
 
       ready(){
         super.ready();
+
+        this.createMutationObserver();
 
         this.$.auth.addEventListener("signed-in-changed",function(e){
           if(this.user){
@@ -104,6 +112,7 @@
         }.bind(this));
 
 
+
       }
 
       createOns(){
@@ -114,10 +123,12 @@
             var datasUnReleve = snapshot.val();
             var unReleve ={
               espece : datasUnReleve.espece,
-              famille : datasUnReleve.famille,
-              Longitude : datasUnReleve.Longitude,
-              Latitude : datasUnReleve.Latitude,
-              URL_Image : datasUnReleve.URL_Image
+              longitude : datasUnReleve.longitude,
+              latitude : datasUnReleve.latitude,
+              codepostal : datasUnReleve.codepostal,
+              downloadURL1 : datasUnReleve.downloadURL1,
+              downloadURL2 : datasUnReleve.downloadURL2,
+              downloadURL3 : datasUnReleve.downloadURL3
             };
             this.push("dataG", unReleve);
             this.notifyPath("dataG");
@@ -129,10 +140,12 @@
             var datasUnReleve = oldChildSnapshot.val();
             var unReleve = {
               espece : datasUnReleve.espece,
-              famille : datasUnReleve.famille,
-              URL_Image : datasUnReleve.URL_Image,
-              Longitude : datasUnReleve.Longitude,
-              Latitude : datasUnReleve.Latitude
+              longitude : datasUnReleve.longitude,
+              latitude : datasUnReleve.latitude,
+              codepostal : datasUnReleve.codepostal,
+              downloadURL1 : datasUnReleve.downloadURL1,
+              downloadURL2 : datasUnReleve.downloadURL2,
+              downloadURL3 : datasUnReleve.downloadURL3
             };
             var index = this.checkReleve(unReleve);
             if(index > -1){
@@ -148,13 +161,33 @@
         this.userId = "";
       }
 
+      createMutationObserver(){
+        var config = {childList : true, subtree : true}; //Quelle mutation observer
+
+        var observer = new MutationObserver(function(mutation){
+          for(var node of mutation[0].addedNodes){
+            if(node.id != undefined && node.id != null){
+                if(node.id === "codec"){
+                  this.codecReady = true;
+                  this.shadowRoot.querySelector("#markers").render();
+                }
+            }
+          }
+        }.bind(this));
+
+        //On observe le node
+        observer.observe(this.shadowRoot, config);
+      }
+
       checkReleve(releve){
         for(var i = 0 ; i < this.dataG.length ; i++){
-          if ( (this.datas[i].Longitude === releve.Longitude) &&
-            (this.datas[i].Latitude === releve.Latitude) &&
-            (this.datas[i].espece === releve.espece) &&
-            (this.datas[i].famille === releve.famille) &&
-            (this.datas[i].URL_Image === releve.URL_Image) ){
+          if ( (this.dataG[i].longitude === releve.longitude) &&
+            (this.dataG[i].latitude === releve.latitude) &&
+            (this.dataG[i].espece === releve.espece) &&
+            (this.dataG[i].codepostal === releve.codepostal) &&
+            (this.dataG[i].downloadURL1 === releve.downloadURL1) &&
+            (this.dataG[i].downloadURL2 === releve.downloadURL2) &&
+            (this.dataG[i].downloadURL3 === releve.downloadURL3) ){
               return i;
             }
         }
@@ -162,14 +195,17 @@
       }
 
       _dataGChanged(changeLength){
-        console.log(this.dataG);
+        this.recenterMap();
+      }
+
+      recenterMap(){
         if(this.dataG.length > 0){
           var i = 0;
-          var moyLong = this.dataG[0].Longitude;
-          var moyLat = this.dataG[0].Latitude;
+          var moyLong = this.dataG[0].longitude;
+          var moyLat = this.dataG[0].latitude;
           for(i = 1 ; i < this.dataG.length ; i++){
-            moyLong += this.dataG[i].Longitude;
-            moyLat += this.dataG[i].Latitude;
+            moyLong += this.dataG[i].longitude;
+            moyLat += this.dataG[i].latitude;
           }
           moyLong /= this.dataG.length;
           moyLat /= this.dataG.length;
@@ -178,8 +214,24 @@
         }
       }
 
-      getNumberFromString(string){
-        return parseFloat(string);
+      getLatitude(item){
+        if(item.latitude){
+          return parseFloat(item.latitude);
+        }else{
+          var geocodec = this.shadowRoot.getElementById("codec");
+          var resultat = geocodec.geocode(item.codepostal + ",FR", function(adress, lat, lng, place){
+            item.longitude = lng;
+            item.latitude = lat;
+            this.shadowRoot.querySelector("#markers").render();
+            this.recenterMap();
+          }.bind(this));
+        }
+      }
+
+      getLongitude(item){
+        if(item.longitude){
+          return parseFloat(item.longitude);
+        }
       }
     }
 

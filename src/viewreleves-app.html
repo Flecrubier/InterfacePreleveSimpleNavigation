@@ -235,7 +235,6 @@
       static get observers(){
         return[
           "geoValueChanged(latitude, longitude, CPInputReady)",
-          "disp(downloadURLs.length)"
         ];
       }
 
@@ -260,31 +259,6 @@
               this.push("allSpecies", snapshot.key);
             }
           });
-
-          this.addEventListener("change", function(e){
-            if(e.path[0].id == "file-uploader"){
-              /*
-              this.filesInput = this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files;
-              if(this.filesInput.length > 3){
-                this.$.dialogUpload0.open();
-                this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.value = ""; //Clean FileList
-              }else{
-                //bon nombre de fichier
-                this.downloadURLs = [];
-                for(var i = 0 ; i < this.filesInput.length ; i++){
-                  var uniqueID = Date.now().toString() + "-" + this.filesInput[i].name;
-                  firebase.app("iPreleveFirebase").storage().ref("/relevesImages/"+this.user.uid+"/"+uniqueID).put(this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files[i]).then(snapshot=>{
-                    this.push("downloadURLs", snapshot.downloadURL);
-                    if(this.downloadURLs.length == this.filesInput.length){
-                      console.log("OUI MONSIEUR BOUNGALE");
-                      //Paper toast pour dire que c'est fini
-                    }
-                  });
-                }
-              }
-              */
-          }
-        });
 
           this.$.auth.addEventListener("signed-in-changed",function(e){
             if(this.user){
@@ -374,7 +348,6 @@
 
       geoValueChanged(latitude, longitude){
         if(this.CPInputReady){
-          //console.log("Lat : ", latitude, " |Long : ", longitude);
           if(latitude == null && longitude == null){
             this.shadowRoot.querySelector("#CPInput").removeAttribute("disabled");
           }else{
@@ -406,16 +379,6 @@
 
       checkReleve(releve){
         for(var i = 0 ; i < this.datas.length ; i++){
-          console.log("this.datas",this.datas[i]);
-          console.log("releve",releve);
-          console.log("this.downloadURLs", this.downloadURLs);
-          console.log("longitude this.data : ", this.datas[i].longitude, " | releve : ", releve.longitude, " | match ? : ", this.datas[i].longitude === releve.longitude);
-          console.log("latitude this.data : ", this.datas[i].latitude, " | releve : ", releve.latitude, " | match ? : ", this.datas[i].latitude === releve.latitude);
-          console.log("espece this.data : ", this.datas[i].espece, " | releve : ", releve.espece, " | match ? : ", this.datas[i].espece === releve.espece);
-          console.log("codepostal this.data : ", this.datas[i].codepostal, " | releve : ", releve.codepostal, " | match ? : ", this.datas[i].codepostal === releve.codepostal);
-          console.log("downloadURL1 this.data : ", this.datas[i].downloadURL1, " | releve : ", releve.downloadURL1, " | match ? : ", this.datas[i].downloadURL1 === releve.downloadURL1);
-          console.log("downloadURL2 this.data : ", this.datas[i].downloadURL2, " | releve : ", releve.downloadURL2, " | match ? : ", this.datas[i].downloadURL2 === releve.downloadURL2);
-          console.log("downloadURL3 this.data : ", this.datas[i].downloadURL3, " | releve : ", releve.downloadURL3, " | match ? : ", this.datas[i].downloadURL3 === releve.downloadURL3);
           if ( (this.datas[i].longitude === releve.longitude) &&
             (this.datas[i].latitude === releve.latitude) &&
             (this.datas[i].espece === releve.espece) &&
@@ -429,17 +392,12 @@
         return -1;
       }
 
-      disp(thing){
-        console.log(this.downloadURLs);
-      }
-
       isEqual(a, b) {
         return a === b;
       }
 
       addData(){
         this.deactivateAddDataButton();
-        //Désactiver le bouton pendant le truc pour éviter le spam
 
         var isCPInputDisabled;
         if(!(this.shadowRoot.querySelector("#CPInput").getAttribute("disabled"))){
@@ -454,7 +412,7 @@
             this.$.dialogUpload0.open();
             this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.value = ""; //Clean FileList
           }else{
-            //bon nombre de fichier
+
             this.downloadURLs = [];
             for(var i = 0 ; i < this.filesInput.length ; i++){
               var uniqueID = Date.now().toString() + "-" + this.filesInput[i].name;
@@ -483,7 +441,7 @@
                   }).then(function(){
                     this.$.toastSuccess.open();
                     this.reactivateAddDataButton();
-                    //Paper toast pour que ce soit fini + réactiver bouton
+
                   }.bind(this));
                 }
               });
@@ -511,25 +469,6 @@
           this.$.toastFail.open();
           this.reactivateAddDataButton();
         }
-
-
-        //sinon faut attendre ( avec une dialog )
-
-        /*
-        //Retrouver nombre de relevés puis faire un ref.child("reeleve"+nbReleve+1).set({donnée});
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+this.datas.length).set({
-          espece : this.specie,
-          famille : this.family,
-          Longitude : this.longitude,
-          Latitude : this.latitude,
-          URL_Image : this.shadowRoot.querySelector("#ut-"+ this.nbTasks).downloadUrl
-        });
-        this.nbTasks = this.nbTasks+1;
-        this.shadowRoot.querySelector("#file-uploader").style.visibility = "visible";
-        this.shadowRoot.querySelector("#btnAddData").style.visibility = "hidden";
-        */
-
-        //Réactiver bouton
       }
 
       deactivateAddDataButton(){
