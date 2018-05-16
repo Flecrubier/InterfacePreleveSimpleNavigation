@@ -16,15 +16,6 @@
     </style>
 
     <template is="dom-if" if="[[user]]">
-      <!--
-      <firebase-query
-        app-name="iPreleveFirebase"
-        id="queryG"
-        ref="{{refG}}"
-        path="/releves/[[user.uid]]/releveUser"
-        data="{{dataG}}">
-      </firebase-query>
-    -->
 
       <google-map
         style="height:90vh"
@@ -36,7 +27,7 @@
         disable-map-type-control
         disable-street-view-control><!--Obligé de zoom="6" car fit-to-markers ne semble pas fonctionner-->
 
-        <template is="dom-repeat" items="[[dataG]]">
+        <template is="dom-repeat" items="[[dataG]]" mutable-data>
           <google-map-marker
             longitude="[[getNumberFromString(item.Longitude)]]"
             latitude="[[getNumberFromString(item.Latitude)]]">
@@ -129,6 +120,7 @@
               URL_Image : datasUnReleve.URL_Image
             };
             this.push("dataG", unReleve);
+            this.notifyPath("dataG");
           }
         });
 

@@ -211,11 +211,6 @@
       ready(){
         super.ready();
 
-        //http://localhost:8081/src/specieList/listSpace
-        // ./src/specieList/listSpace
-
-        //this.readFile("./src/specieList/listSpace");
-
         this.addEventListener("authLoginRequest", function(e){
           this.$.auth.signInWithEmailAndPassword(e.detail.mail, e.detail.mdp)
           .then(function(ee){
@@ -227,8 +222,6 @@
         });
         this.addEventListener("authLogoutRequest", function(e){
           this.$.auth.signOut();
-          //location.reload();
-          //Fire un event refreshArrays vers les child pour rafraichir les données.
         });
         this.addEventListener("authRegisterRequest", function(e){
           this.$.auth.createUserWithEmailAndPassword(e.detail.mail, e.detail.mdp)
@@ -272,7 +265,6 @@
       static get observers() {
         return [
           '_routePageChanged(routeData.page)',
-          //'speciesArrayChange(speciesArray.*)',
         ];
       }
 

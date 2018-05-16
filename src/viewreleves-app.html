@@ -136,7 +136,7 @@
             </template>
           </paper-listbox>
         </paper-dropdown-menu>
-        <span>[[numMatch]] espèces correspondent</span>
+        <span>[[numMatch]] espèce(s) correspond(ent)</span>
       </div>
 
       <paper-input style="width:6em" id="CPInput" label="Code postal" value="{{codepostal}}" maxlength="5" disabled></paper-input>
@@ -227,42 +227,6 @@
         super.ready();
         this.createMutationObserver();
 
-        //Pour les on avec le user on peut faire une fonction connect et disconnect qui les gère et ensuite utiliser
-        //les eventListener sur onConnect et onDisconnect (pas sur des noms) pour les appeler
-        /*
-        firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
-                      .on("child_added",snapshot =>{
-                        if(this.doAdded){
-                          var datasUnReleve = snapshot.val();
-                          var unReleve = {
-                            espece : datasUnReleve.espece,
-                            famille : datasUnReleve.famille,
-                            URL_Image : datasUnReleve.URL_Image,
-                            Longitude : datasUnReleve.Longitude,
-                            Latitude : datasUnReleve.Latitude
-                          };
-                          this.push("datas", unReleve);
-                        }
-          });
-
-          firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser")
-                      .on("child_removed", oldChildSnapshot=>{
-                        if(this.doAdded){
-                          var datasUnReleve = oldChildSnapshot.val();
-                          var unReleve = {
-                            espece : datasUnReleve.espece,
-                            famille : datasUnReleve.famille,
-                            URL_Image : datasUnReleve.URL_Image,
-                            Longitude : datasUnReleve.Longitude,
-                            Latitude : datasUnReleve.Latitude
-                          };
-                          var index = this.checkReleve(unReleve);
-                          if(index > -1){
-                              this.splice("datas", index, 1);
-                          }
-                        }
-          });
-*/
           firebase.app("iPreleveFirebase").database().ref("/species").on("child_added", snapshot=>{
             if(this.doAdded){
               this.push("allSpecies", snapshot.key);
@@ -271,7 +235,8 @@
 
           this.addEventListener("change", function(e){
             if(e.path[0].id == "file-uploader"){
-              this.filesInput = this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files
+              //---------
+              this.filesInput = this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files;
               if(this.filesInput.length > 3){
                 this.$.dialogUpload0.open();
                 this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.value = ""; //Clean FileList
@@ -290,6 +255,7 @@
                   });
                 }
               }
+              //---------
           }
         });
 
@@ -357,6 +323,10 @@
                 if(node.id === "CPInput"){
                   this.CPInputReady = true;
                   this.geoValueChanged(this.latitude, this.longitude);
+                }
+
+                if(node.id === "file-uploader"){
+                  this.filesInput = this.shadowRoot.querySelector("#file-uploader").inputElement.inputElement.files;
                 }
             }
           }
@@ -473,7 +443,7 @@
       }
 
       refreshDBKeyNames(idDelete){
-        //--On n'exécute pas la code des on crées dans le ready pour le déplcement des données
+        //--On n'exécute pas la code des on crées dans le ready pour le déplacement des données
         this.doAdded = false;
         //--
         for(var i = idDelete ; i < this.datas.length ; i++){
