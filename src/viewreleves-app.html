@@ -311,7 +311,6 @@
                           };
                           var index = this.checkReleve(unReleve);
                           if(index > -1){
-                            console.log("c bon ?");
                             this.splice("datas", index, 1);
                           }
                         }
@@ -472,13 +471,11 @@
       }
 
       deactivateAddDataButton(){
-        console.log("diasble");
         this.shadowRoot.querySelector("#btnAddData").setAttribute("disabled",true);
         this.shadowRoot.querySelector("#btnAddData").style.opacity = 0.2;
       }
 
       reactivateAddDataButton(){
-        console.log("dédisable");
         this.shadowRoot.querySelector("#btnAddData").removeAttribute("disabled");
         this.shadowRoot.querySelector("#btnAddData").style.opacity = 1.0;
       }

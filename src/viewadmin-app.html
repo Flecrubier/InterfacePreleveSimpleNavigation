@@ -17,6 +17,7 @@
 <link rel="import" href="../../bower_components/iron-icons/image-icons.html">
 <link rel="import" href="../../bower_components/google-map/google-map.html">
 <link rel="import" href="../../bower_components/google-map/google-map-marker.html">
+<link rel="import" href="../../bower_components/geo-codec/geo-codec.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="viewadmin-app">
@@ -77,7 +78,7 @@
 
         <!-- Carte de tous les relevés -->
 
-        <h5>Gestion Base de données</h5>
+        <h5>Gestion Base de données des espèces</h5>
 
         <paper-button raised on-tap="cleanDB">Nettoyer base de données des espèces</paper-button>
         <paper-button raised on-tap="fillDB">Charger base de données des espèces</paper-button>
@@ -85,20 +86,22 @@
 
         <h5>Carte des relevés</h5>
 
+        <geo-codec id="codec" api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"></geo-codec>
+
         <google-map
           style="height:70vh"
           api-key="AIzaSyAc_IMWZiednHX3QWR3Jw53b69hFh8c6B4"
           id="mapAdmin"
           longitude="[[longMap]]"
           latitude="[[latMap]]"
-          zoom="14"
+          zoom="10"
           disable-map-type-control
           disable-street-view-control>
 
-          <template is="dom-repeat" items="[[allReleves]]">
+          <template is="dom-repeat" items="[[allReleves]]" mutable-data id="markers">
             <google-map-marker
-              longitude="[[getNumberFromString(item.Longitude)]]"
-              latitude="[[getNumberFromString(item.Latitude)]]">
+            longitude="[[getLongitude(item)]]"
+            latitude="[[getLatitude(item)]]">
             <p><h4>[[item.espece]]</h4></p>
             </google-map-marker>
           </template>
@@ -142,18 +145,10 @@
                               </paper-icon-item>
 
                               <paper-icon-item>
-                                <iron-icon icon="icons:info-outline" slot="item-icon"></iron-icon>
-                                <paper-item-body two-lines>
-                                  <div>Famille</div>
-                                  <div secondary>[[relevesUser.famille]]</div>
-                                </paper-item-body>
-                              </paper-icon-item>
-
-                              <paper-icon-item>
                                 <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
                                 <paper-item-body two-lines>
                                   <div>Longitude</div>
-                                  <div secondary>[[relevesUser.Longitude]]</div>
+                                  <div secondary>[[showData(relevesUser.longitude)]]</div>
                                 </paper-item-body>
                               </paper-icon-item>
 
@@ -161,7 +156,15 @@
                                 <iron-icon icon="device:gps-fixed" slot="item-icon"></iron-icon>
                                 <paper-item-body two-lines>
                                   <div>Latitude</div>
-                                  <div secondary>[[relevesUser.Latitude]]</div>
+                                  <div secondary>[[showData(relevesUser.latitude)]]</div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="icons:mail" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Code postal</div>
+                                  <div secondary>[[showData(relevesUser.codepostal)]]</div>
                                 </paper-item-body>
                               </paper-icon-item>
 
@@ -169,7 +172,23 @@
                                 <iron-icon icon="image:image" slot="item-icon"></iron-icon>
                                 <paper-item-body two-lines>
                                   <div>Image</div>
-                                  <div secondary><img src="[[relevesUser.URL_Image]]"></img></div>
+                                  <div secondary><img src="[[relevesUser.downloadURL1]]"></img></div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Image</div>
+                                  <div secondary><img src="[[relevesUser.downloadURL2]]"></img></div>
+                                </paper-item-body>
+                              </paper-icon-item>
+
+                              <paper-icon-item>
+                                <iron-icon icon="image:image" slot="item-icon"></iron-icon>
+                                <paper-item-body two-lines>
+                                  <div>Image</div>
+                                  <div secondary><img src="[[relevesUser.downloadURL3]]"></img></div>
                                 </paper-item-body>
                               </paper-icon-item>
 
@@ -325,14 +344,17 @@
                 var datasUnReleve = snapshot.val();
                 var unReleve = {
                   espece : datasUnReleve.espece,
-                  famille : datasUnReleve.famille,
-                  URL_Image : datasUnReleve.URL_Image,
-                  Longitude : datasUnReleve.Longitude,
-                  Latitude : datasUnReleve.Latitude
+                  longitude : datasUnReleve.longitude,
+                  latitude : datasUnReleve.latitude,
+                  codepostal : datasUnReleve.codepostal,
+                  downloadURL1 : datasUnReleve.downloadURL1,
+                  downloadURL2 : datasUnReleve.downloadURL2,
+                  downloadURL3 : datasUnReleve.downloadURL3
                 };
                 this.push("datas."+numUser+".releves", unReleve);
                 //push dans le tableau de tous les relevés
                 this.push("allReleves", unReleve);
+                this.notifyPath("allReleves");
               }
             });
 
@@ -341,10 +363,12 @@
                 var datasUnReleve = oldChildSnapshot.val();
                 var unReleve = {
                   espece : datasUnReleve.espece,
-                  famille : datasUnReleve.famille,
-                  URL_Image : datasUnReleve.URL_Image,
-                  Longitude : datasUnReleve.Longitude,
-                  Latitude : datasUnReleve.Latitude
+                  longitude : datasUnReleve.longitude,
+                  latitude : datasUnReleve.latitude,
+                  codepostal : datasUnReleve.codepostal,
+                  downloadURL1 : datasUnReleve.downloadURL1,
+                  downloadURL2 : datasUnReleve.downloadURL2,
+                  downloadURL3 : datasUnReleve.downloadURL3
                 };
                 var index = this.checkReleve(numUser, unReleve);
                 if(index > -1){
@@ -361,13 +385,6 @@
 
         });
 
-        firebase.app("iPreleveFirebase").database().ref("/releves").on("child_removed", oldChildSnapshot =>{
-          if(this.doAdded){
-            var datasUnUser = oldChildSnapshot.val();
-            console.log(datasUnUser);
-          }
-        });
-
         firebase.app("iPreleveFirebase").database().ref("/blocked_user").on("child_added", snapshot =>{
           this.set("blockedUsers."+snapshot.key, {id : snapshot.key, banned : snapshot.val()});
         });
@@ -375,6 +392,10 @@
         firebase.app("iPreleveFirebase").database().ref("/blocked_user").on("child_changed", snapshot =>{
           this.set("blockedUsers."+snapshot.key, {id : snapshot.key, banned : snapshot.val()});
         });
+      }
+
+      createOns(){
+
       }
 
       speciesArrayChange(){
@@ -414,11 +435,13 @@
 
       checkReleve(numUser, releve){
         for(var i = 0 ; i < this.datas[numUser].releves.length ; i++){
-          if ( (this.datas[numUser].releves[i].Longitude === releve.Longitude) &&
-            (this.datas[numUser].releves[i].Latitude === releve.Latitude) &&
+          if ( (this.datas[numUser].releves[i].longitude === releve.longitude) &&
+            (this.datas[numUser].releves[i].latitude === releve.latitude) &&
             (this.datas[numUser].releves[i].espece === releve.espece) &&
-            (this.datas[numUser].releves[i].famille === releve.famille) &&
-            (this.datas[numUser].releves[i].URL_Image === releve.URL_Image) ){
+            (this.datas[numUser].releves[i].codepostal === releve.codepostal) &&
+            (this.datas[numUser].releves[i].downloadURL1 === releve.downloadURL1) &&
+            (this.datas[numUser].releves[i].downloadURL2 === releve.downloadURL2) &&
+            (this.datas[numUser].releves[i].downloadURL3 === releve.downloadURL3) ){
               return i;
             }
         }
@@ -427,29 +450,31 @@
 
       checkReleveAllReleve(releve){
         for(var i = 0; i < this.allReleves.length ; i++){
-          if ( (this.allReleves[i].Longitude === releve.Longitude) &&
-            (this.allReleves[i].Latitude === releve.Latitude) &&
+          if ( (this.allReleves[i].longitude === releve.longitude) &&
+            (this.allReleves[i].latitude === releve.latitude) &&
             (this.allReleves[i].espece === releve.espece) &&
-            (this.allReleves[i].famille === releve.famille) &&
-            (this.allReleves[i].URL_Image === releve.URL_Image) ){
+            (this.allReleves[i].codepostal === releve.codepostal) &&
+            (this.allReleves[i].downloadURL1 === releve.downloadURL1) &&
+            (this.allReleves[i].downloadURL2 === releve.downloadURL2) &&
+            (this.allReleves[i].downloadURL3 === releve.downloadURL3) ){
               return i;
             }
         }
         return -1;
       }
 
-      getNumberFromString(string){
-        return parseFloat(string);
+      allRelevesChanged(){
+        this.recenterMap();
       }
 
-      allRelevesChanged(){
+      recenterMap(){
         if(this.allReleves.length > 0){
           var i = 0;
-          var moyLong = this.allReleves[0].Longitude;
-          var moyLat = this.allReleves[0].Latitude;
+          var moyLong = this.allReleves[0].longitude;
+          var moyLat = this.allReleves[0].latitude;
           for(i = 1 ; i < this.allReleves.length ; i++){
-            moyLong += this.allReleves[i].Longitude;
-            moyLat += this.allReleves[i].Latitude;
+            moyLong += this.allReleves[i].longitude;
+            moyLat += this.allReleves[i].latitude;
           }
           moyLong /= this.allReleves.length;
           moyLat /= this.allReleves.length;
@@ -476,7 +501,7 @@
       }
 
       checkIsAdmin(){
-        console.log(this.admins.includes(this.user.uid));
+        //console.log(this.admins.includes(this.user.uid));
         return this.admins.includes(this.user.uid);
       }
 
@@ -496,7 +521,9 @@
         var userId = splitChaineId[0];
         var numReleve = parseInt(splitChaineId[1]);
         var wantedKey = "n"+numReleve;
-        var wantedDownloadUrl = this.datas[userId].releves[numReleve].URL_Image;
+        var wantedDownloadUrl1 = this.datas[userId].releves[numReleve].downloadURL1;
+        var wantedDownloadUrl2 = this.datas[userId].releves[numReleve].downloadURL2;
+        var wantedDownloadUrl3 = this.datas[userId].releves[numReleve].downloadURL3;
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[userId].id+"/releveUser/"+wantedKey).remove(function(e){
           console.log("Relevé supprimmé");
@@ -504,7 +531,15 @@
 
         this.updateDBKeyNames(userId, numReleve);
 
-        firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl).delete();
+        if(wantedDownloadUrl1){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl1).delete();
+        }
+        if(wantedDownloadUrl2){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl2).delete();
+        }
+        if(wantedDownloadUrl3){
+          firebase.app("iPreleveFirebase").storage().refFromURL(wantedDownloadUrl3).delete();
+        }
       }
 
       updateDBKeyNames(numUser, idDelete){
@@ -584,6 +619,34 @@
 
       _showError(error){
         console.log(error);
+      }
+
+      showData(item){
+        if(item == false){
+          return "Non renseigné";
+        }else{
+          return item;
+        }
+      }
+
+      getLatitude(item){
+        if(item.latitude){
+          return parseFloat(item.latitude);
+        }else{
+          var geocodec = this.shadowRoot.getElementById("codec");
+          var resultat = geocodec.geocode(item.codepostal + ",FR", function(adress, lat, lng, place){
+            item.longitude = lng;
+            item.latitude = lat;
+            this.shadowRoot.querySelector("#markers").render();
+            this.recenterMap();
+          }.bind(this));
+        }
+      }
+
+      getLongitude(item){
+        if(item.longitude){
+          return parseFloat(item.longitude);
+        }
       }
 
     }
