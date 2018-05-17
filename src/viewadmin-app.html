@@ -356,7 +356,7 @@
                   downloadURL3 : datasUnReleve.downloadURL3
                 };
                 this.push("datas."+numUser+".releves", unReleve);
-                //push dans le tableau de tous les relevés
+
                 this.push("allReleves", unReleve);
                 this.notifyPath("allReleves");
               }
@@ -379,7 +379,6 @@
                   this.splice("datas."+numUser+".releves", index, 1);
                 }
 
-                //Splice de allReleves
                 var indexAllReleves = this.checkReleveAllReleve(unReleve);
                 if(indexAllReleves > -1){
                   this.splice("allReleves", index, 1);
@@ -420,8 +419,6 @@
           if(xmlRequest.readyState == 4){
             if(xmlRequest.status == 200 || xmlRequest.status == 0){
               var text = xmlRequest.responseText;
-              //console.log(text);
-              //console.log(text.split("\n"));
               this.speciesArray = text.split("\n");
             }
           }
@@ -501,7 +498,6 @@
       }
 
       checkIsAdmin(){
-        //console.log(this.admins.includes(this.user.uid));
         return this.admins.includes(this.user.uid);
       }
 

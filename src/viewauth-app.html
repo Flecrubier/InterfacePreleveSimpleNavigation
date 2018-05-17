@@ -53,7 +53,7 @@
         <h3 hidden$=[[!user]]>Connecté en tant que [[user.email]]</h3>
         <paper-button id ="logoutButton" raised on-tap="_logout" hidden$="[[!user]]">Déconnexion</paper-button>
       </div>
-      <!--Faire un séparateur (ligne...)-->
+
       <div class="card" hidden$=[[user]]>
         <h3>Inscription</h3>
         <paper-input style="width:20em" id="registerMail" label="Email d'inscription" value="{{registermail}}" maxlength="100"></paper-input>

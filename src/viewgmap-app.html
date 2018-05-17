@@ -83,7 +83,6 @@
       }
 
       static get observers(){
-        //return["callbackFunction(path)"" ici path c'est dataG.length]
         return[
           "_dataGChanged(dataG.length)"
         ]
@@ -162,7 +161,7 @@
       }
 
       createMutationObserver(){
-        var config = {childList : true, subtree : true}; //Quelle mutation observer
+        var config = {childList : true, subtree : true};
 
         var observer = new MutationObserver(function(mutation){
           for(var node of mutation[0].addedNodes){
@@ -175,7 +174,6 @@
           }
         }.bind(this));
 
-        //On observe le node
         observer.observe(this.shadowRoot, config);
       }
 

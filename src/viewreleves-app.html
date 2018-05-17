@@ -329,7 +329,7 @@
       }
 
       createMutationObserver(){
-        var config = {childList : true, subtree : true}; //Quelle mutation observer
+        var config = {childList : true, subtree : true};
 
         var observer = new MutationObserver(function(mutation){
           for(var node of mutation[0].addedNodes){
@@ -346,7 +346,6 @@
           }
         }.bind(this));
 
-        //On observe le node
         observer.observe(this.shadowRoot, config);
       }
 
@@ -524,7 +523,7 @@
       refreshDBKeyNames(idDelete){
         //--On n'exécute pas la code des on crées dans le ready pour le déplacement des données
         this.doAdded = false;
-        //--
+
         for(var i = idDelete ; i < this.datas.length ; i++){
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).on("child_added", snapshot =>{
             firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+i+"/"+snapshot.key).set(snapshot.val());
@@ -533,9 +532,8 @@
 
           firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/n"+(i+1)).off("child_added");
         }
-        //--
+
         this.doAdded = true;
-        //--
       }
 
       showData(item){
