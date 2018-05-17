@@ -62,6 +62,11 @@
     text="Il faut sélectionner une espèce et remplir le code postal à 5 chiffres">
   </paper-toast>
 
+  <paper-toast
+    id="toastDelete"
+    text="Relevé supprimmé">
+  </paper-toast>
+
   <firebase-auth
     app-name="iPreleveFirebase"
     id="auth"
@@ -499,8 +504,8 @@
         var wantedDownloadUrl3 = this.datas[idReleveInt].downloadURL3;
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.user.uid+"/releveUser/"+wantedKey).remove(function(e){
-          console.log("Relevé supprimmé");
-        });
+          this.$.toastDelete.open();
+        }.bind(this));
 
         this.refreshDBKeyNames(idReleveInt);
 

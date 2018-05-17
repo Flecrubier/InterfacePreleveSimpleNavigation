@@ -69,6 +69,10 @@
       text="Base des espèces chargée">
     </paper-toast>
 
+    <paper-toast
+      id="toastDelete"
+      text="Relevé supprimmé">
+    </paper-toast>
 
 
     <template is="dom-if" if="[[user]]">
@@ -522,8 +526,8 @@
         var wantedDownloadUrl3 = this.datas[userId].releves[numReleve].downloadURL3;
 
         firebase.app("iPreleveFirebase").database().ref("/releves/"+this.datas[userId].id+"/releveUser/"+wantedKey).remove(function(e){
-          console.log("Relevé supprimmé");
-        });
+          this.$.toastDelete.open();
+        }.bind(this));
 
         this.updateDBKeyNames(userId, numReleve);
 
