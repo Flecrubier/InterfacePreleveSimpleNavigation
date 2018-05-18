@@ -162,7 +162,7 @@
 
       <div>
         <paper-dropdown-menu>
-          <paper-listbox slot="dropdown-content">
+          <paper-listbox slot="dropdown-content" id="liste">
             <template id="matchSpecies" is="dom-repeat" items="[[allSpecies]]" filter="doMatch">
               <paper-item>[[item]]</paper-item>
             </template>
@@ -272,6 +272,10 @@
             }else{
               //Déconnexion
               this.doOffs();
+              this.selectedSpecie = null;
+              this.specie = null;
+              this.codepostal = null;
+              this.shadowRoot.querySelector("#liste").selectIndex(0);
             }
           }.bind(this));
 
